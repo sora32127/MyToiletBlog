@@ -10,3 +10,8 @@ bucket = "./build/client"
 
 [build]
 command = "npm run build"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "my-toilet-blogs"
+database_id = "ac14b100-c26a-4a60-8407-68bcad02299a"
