@@ -1,3 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    @font-face {
+        font-family: "otsutome";
+        src: url("./assets/OtsutomeFont_Ver3_16.ttf");
+    }
+}
+
+@layer base {
+    @font-face {
+        font-family: "sans";
+        src: url("./assets/HannariMincho-Regular.otf");
+
+    }
+}
+
+@layer components {
+    .nav-link {
+        @apply text-info underline;
+    }
+}

@@ -13,7 +13,7 @@ export const meta: MetaFunction = () => {
 export default function Index() {
   return (
     <div className="font-sans p-4">
-      <h1 className="text-3xl">Recent</h1>
+      <h1 className="text-3xl">京都はんなり明朝</h1>
     </div>
   );
 }

@@ -4,9 +4,12 @@ import {
   cloudflareDevProxyVitePlugin,
 } from "@remix-run/dev";
 import tsconfigPaths from "vite-tsconfig-paths";
+import mdx from '@mdx-js/rollup'
+
 
 export default defineConfig({
   plugins: [
+    mdx(),
     cloudflareDevProxyVitePlugin(),
     remix({
       future: {
