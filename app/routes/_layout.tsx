@@ -33,7 +33,7 @@ export default function Layout() {
                     </button>
                 </div>
                 <div className="navbar-center">
-                    <NavLink to="/" className="btn btn-ghost text-xl hover:bg-base-200 font-otsutome">現実モデリング</NavLink>
+                    <NavLink to="/" className="btn btn-ghost text-xl hover:bg-base-200 font-serif">現実モデリング</NavLink>
                 </div>
                 <div className="navbar-end">
                     <div className="hidden md:flex">
@@ -55,7 +55,7 @@ export default function Layout() {
                     </div>
                 </div>
             </div>
-            <div className="content m-4 animate-fade-in md:w-3/4 md:mx-auto md:my-8">
+            <div className="content m-4 animate-fade-in md:w-3/4 md:mx-auto md:my-8 font-sans">
                 <Outlet />
             </div>
         </div>

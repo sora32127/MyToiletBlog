@@ -14,9 +14,8 @@ export default {
         "fade-in": "fade-in 1.0s ease-out",
       },
       fontFamily: {
-        "sans" : ["sans"],
-        "serif" : ["Cambria"],
-        "otsutome" : ["otsutome"],
+        "sans" : ["IBM Plex Sans JP"],
+        "serif" : ["Noto Serif JP"],
       },
     },
   },

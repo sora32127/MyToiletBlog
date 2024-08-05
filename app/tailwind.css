@@ -1,24 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200..900&family=Shippori+Mincho&family=Zen+Old+Mincho&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP&family=Noto+Serif+JP:wght@200..900&family=Shippori+Mincho&family=Zen+Old+Mincho&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-    @font-face {
-        font-family: "otsutome";
-        src: url("./assets/OtsutomeFont_Ver3_16.ttf");
-    }
-}
-
-@layer base {
-    @font-face {
-        font-family: "sans";
-        src: url("./assets/HannariMincho-Regular.otf");
-
-    }
-}
 
 @layer components {
     .nav-link {
         @apply text-info underline;
     }
+}
+
+.markdown-image-container {
+    max-width: 100%;
+    margin: 1rem 0;
+}
+
+.markdown-image {
+    max-width: 100%;
+    height: auto;
+    max-height: 400px; /* 必要に応じてこの値を調整してください */
+    object-fit: contain;
+}
+
+h1 {
+    @apply text-4xl font-bold text-center my-8;
+}
+
+h2 {
+    @apply text-2xl font-bold my-8;
+}
+
+h3 {
+    @apply text-xl font-bold my-4;
+}
+
+ul {
+    @apply list-disc list-outside mb-4 ml-8;
+}
+
+li {
+    @apply my-2;
+}
+
+ol {
+    @apply list-decimal list-outside mb-4 ml-8;
+}
+
+a {
+    @apply text-info underline underline-offset-4;
+}
+
+table {
+    @apply w-full border-collapse mb-4;
+}
+
+table td {
+    @apply border border-gray-300 px-4 py-2;
 }
