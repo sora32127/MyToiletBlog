@@ -5,6 +5,7 @@ import { getPostByPostId, getTagsByPostId } from "~/modules/db.server";
 import TagShowCard from "~/Components/TagShowCard";
 import SummaryShowCard from "~/Components/SummaryShowCard";
 import ShareButtons from "~/Components/ShareButtons";
+import { RenderMarkdownIntoHTML } from "~/Components/RenderMarkdownIntoHTML";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
     const postId = params.postId;
@@ -29,6 +30,9 @@ export default function Post() {
                 {tags && tags.map((tag) => (
                     <TagShowCard key={tag.tagId} tags={tag} />
                 ))}
+            </div>
+            <div>
+                <RenderMarkdownIntoHTML markdownContent={post.postContentMD.toString()} />
             </div>
             <ShareButtons currentURL={"https://contradictiononline.org/posts/" + post.postId} postTitle={post.postTitle} />
         </div>

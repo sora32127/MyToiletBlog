@@ -6,13 +6,7 @@ import { createPost } from "~/modules/db.server";
 import { createOGImage, generateFileName, putFileToStorage } from "~/modules/storage.server";
 import { IconType } from 'react-icons';
 import { FaHeading, FaBold, FaItalic, FaLink, FaListUl, FaListOl, FaStrikethrough, FaImage, } from 'react-icons/fa';
-import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import remarkRehype from 'remark-rehype';
-import rehypeStringify from 'rehype-stringify';
-import remarkGfm from 'remark-gfm';
-import markdown from 'remark-parse';
-import { visit } from 'unist-util-visit';
+import { RenderMarkdownIntoHTML } from "~/Components/RenderMarkdownIntoHTML";
 
 
 interface ToolbarItem {
@@ -88,54 +82,6 @@ export default function EditNew() {
             method: "post"
         });
     };
-
-    const [htmlContent, setHtmlContent] = useState("");
-    const renderMarkdownIntoHTML = useCallback(async (markdownContent: string) => {
-        const processor = await unified()
-            .use(markdown)
-            .use(remarkGfm)
-            .use(remarkRehype)
-            .use(() => (tree: any) => {
-                visit(tree, 'element', (node, index, parent) => {
-                    if ((node as any).tagName === 'img') {
-                        const alt = (node as any).properties?.alt as string;
-                        const src = (node as any).properties?.src as string;
-                        if (alt && src) {
-                            const figureNode = {
-                                type: 'element',
-                                tagName: 'figure',
-                                properties: {},
-                                children: [
-                                    {
-                                        type: 'element',
-                                        tagName: 'img',
-                                        properties: { src: `/images/${src}`, alt },
-                                        children: [],
-                                    },
-                                    {
-                                        type: 'element',
-                                        tagName: 'figcaption',
-                                        properties: {},
-                                        children: [{ type: 'text', value: alt }],
-                                    },
-                                ],
-                            };
-                            if (parent && typeof index === 'number') {
-                                parent.children[index] = figureNode;
-                            }
-                            return [(visit as any).SKIP];
-                        }
-                    }
-                });
-            })
-            .use(rehypeStringify);
-        const htmlString = await processor.process(markdownContent).then((result) => result.toString());
-        return htmlString;
-    }, []);
-
-    useEffect(() => {
-        renderMarkdownIntoHTML(markdownContent).then(setHtmlContent);
-    }, [markdownContent, renderMarkdownIntoHTML]);
 
     const insertMarkdown = useCallback((prefix: string, suffix: string = '') => {
         const textarea = textareaRef.current;
@@ -233,7 +179,7 @@ export default function EditNew() {
             </div>
             <div className="my-4">
             <div className="my-4">
-                <div dangerouslySetInnerHTML={{ __html: htmlContent }} className="markdownEditorPreview"></div>
+                <RenderMarkdownIntoHTML markdownContent={markdownContent} />
             </div>
             </div>
             <div className="my-4">
