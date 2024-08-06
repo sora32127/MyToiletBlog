@@ -2,9 +2,9 @@ import { json, LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { H1 } from "~/Components/Headings";
 import { getPostByPostId, getTagsByPostId } from "~/modules/db.server";
-import { marked } from "marked";
 import TagShowCard from "~/Components/TagShowCard";
 import SummaryShowCard from "~/Components/SummaryShowCard";
+import ShareButtons from "~/Components/ShareButtons";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
     const postId = params.postId;
@@ -30,7 +30,7 @@ export default function Post() {
                     <TagShowCard key={tag.tagId} tags={tag} />
                 ))}
             </div>
-            <div dangerouslySetInnerHTML={{ __html: marked(post.postContentMD) }} />
+            <ShareButtons currentURL={"https://contradictiononline.org/posts/" + post.postId} postTitle={post.postTitle} />
         </div>
     );
 }

@@ -139,7 +139,7 @@ async function getTagsByPostId(postId: number, serverContext: AppLoadContext): P
     return tagNames;
 }
 
-export const PostShowCardSchema = z.object({
+export const PostShowCardSchema = z.optional(z.object({
     postId: z.number(),
     postTitle: z.string(),
     postContentMD: z.string(),
@@ -148,7 +148,7 @@ export const PostShowCardSchema = z.object({
     postOGImageURL: z.string(),
     isPublic: z.number(),
     tagsNames: z.array(tagSchema),
-});
+}));
 
 async function getRecentPosts(serverContext: AppLoadContext): Promise<z.infer<typeof PostShowCardSchema>[]> {
     const db = getDBClient(serverContext);
@@ -167,4 +167,33 @@ async function getRecentPosts(serverContext: AppLoadContext): Promise<z.infer<ty
     }));
     return postsWithTags;
 }
-export {createPost, getPostByPostId, getRecentPosts, getTagsByPostId};
+
+async function getPostsByTagName(tagName: string, serverContext: AppLoadContext): Promise<z.infer<typeof PostShowCardSchema>[]> {
+    const db = getDBClient(serverContext);
+    const tagId = await db.dimTags.findUnique({
+        where: {
+            tagName
+        }
+    });
+    if (!tagId){
+        return [];
+    }
+    const posts = await db.dimPosts.findMany({
+        where: {
+            relPostTags: {
+                some: {
+                    tagId: tagId.tagId
+                }
+            }
+        }
+    });
+    const postsWithTags = await Promise.all(posts.map(async (post) => {
+        const tags = await getTagsByPostId(post.postId, serverContext);
+        return {
+            ...post,
+            tagsNames: tags
+        }
+    }));
+    return postsWithTags;
+}
+export {createPost, getPostByPostId, getRecentPosts, getTagsByPostId, getPostsByTagName};

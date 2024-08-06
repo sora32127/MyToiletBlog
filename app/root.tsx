@@ -20,6 +20,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
+        <script src="https://b.st-hatena.com/js/bookmark_button.js"/>
         <script dangerouslySetInnerHTML={{__html: `
           (function() {
             const savedTheme = localStorage.getItem("theme");
