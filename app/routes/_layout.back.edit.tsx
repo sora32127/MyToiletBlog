@@ -176,21 +176,19 @@ export default function EditNew() {
     return (
         <Form encType="multipart/form-data">
             <div>
-                <input
-                    type="text"
+                <textarea
                     name="postTitle"
                     placeholder="タイトル"
-                    className="input input-bordered input-primary w-full my-4"
+                    className="textarea textarea-bordered w-full my-4"
                     value={postTitle}
                     onChange={(e) => handlePostTitleChange(e.target.value)}
                 />
             </div>
             <div>
-                <input
-                    type="text"
+                <textarea
                     name="summary"
                     placeholder="サマリー"
-                    className="input input-bordered input-primary w-full my-4 h-24"
+                    className="textarea textarea-bordered w-full my-4"
                     value={summary}
                     onChange={(e) => handleSummaryChange(e.target.value)}
                 />
@@ -238,11 +236,10 @@ export default function EditNew() {
                 </div>
             </div>
             <div className="relative">
-                <input
-                    type="text"
+                <textarea
                     name="tags"
                     placeholder="タグを入力  #生活 #人生"
-                    className="input input-bordered input-primary w-full my-4 placeholer-slate-500"
+                    className="textarea textarea-bordered w-full my-4 placeholer-slate-500"
                     value={tags}
                     onChange={(e) => handleTagsChange(e.target.value)}
                 />
