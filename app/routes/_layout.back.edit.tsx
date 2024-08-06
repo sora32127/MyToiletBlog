@@ -224,14 +224,10 @@ export default function EditNew() {
             <div className="my-4">
                 <div className="form-control">
                     <label className="label cursor-pointer">
-                        <span className="label-text">公開</span>
-                        <input type="radio" name="radio-ispublic" className="radio checked:bg-red-500" value="true" onChange={(e) => handleIsPublicChange(e.target.value === "true")} />
-                    </label>
-                </div>
-                <div className="form-control">
-                    <label className="label cursor-pointer">
-                        <span className="label-text">下書き</span>
-                        <input type="radio" name="radio-ispublic" className="radio checked:bg-blue-500" value="false" onChange={(e) => handleIsPublicChange(e.target.value === "false")} defaultChecked />
+                        <div className="flex items-center space-x-2">
+                            <span className="label-text">公開</span>
+                            <input type="checkbox" className="toggle toggle-primary " checked={isPublic} onChange={() => handleIsPublicChange(!isPublic)} />
+                        </div>
                     </label>
                 </div>
             </div>
