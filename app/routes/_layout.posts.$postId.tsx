@@ -30,9 +30,11 @@ export default function Post() {
             <div>
                 <RenderMarkdownIntoHTML markdownContent={post.postContentMD.toString()} />
             </div>
-            <div>
+            <div className="my-8 flex">
                 {tags && tags.map((tag) => (
+                    <div className="mx-1">
                     <TagShowCard key={tag.tagId} tags={tag} />
+                    </div>
                 ))}
             </div>
             <ShareButtons currentURL={"https://contradictiononline.org/posts/" + post.postId} postTitle={post.postTitle} />
