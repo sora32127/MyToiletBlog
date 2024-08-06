@@ -1,12 +1,12 @@
 import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { Form, useActionData, useLoaderData, useSubmit } from "@remix-run/react";
+import { Form, useActionData, useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { createPost, getPostByPostId, getTagCounts, getTagsByPostId } from "~/modules/db.server";
 import { generateFileName, putFileToStorage } from "~/modules/storage.server";
 import { IconType } from 'react-icons';
 import { FaHeading, FaBold, FaItalic, FaLink, FaListUl, FaListOl, FaStrikethrough, FaImage, } from 'react-icons/fa';
 import { RenderMarkdownIntoHTML } from "~/Components/RenderMarkdownIntoHTML";
-
+import { Modal } from "~/Components/Modal";
 
 interface ToolbarItem {
   label: string;
@@ -126,6 +126,36 @@ export default function EditNew() {
     );
 
     const actionData = useActionData<typeof action>();
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+    const [isDangerModalOpen, setIsDangerModalOpen] = useState(false);
+
+    const navigate = useNavigate();
+
+    const clearLocalStorage = () => {
+        localStorage.removeItem('markdownContent');
+        localStorage.removeItem('postTitle');
+        localStorage.removeItem('summary');
+        localStorage.removeItem('tags');
+        localStorage.removeItem('isPublic');
+        setMarkdownContent("");
+        setPostTitle("");
+        setSummary("");
+        setTags("");
+        setIsPublic(false);
+    }
+
+    if (actionData?.status === 200) {
+        setIsSuccessModalOpen(true);
+        setTimeout(() => {
+            navigate(actionData.newPostUrl);
+            clearLocalStorage();
+        }, 1000);
+    }
+    else if (actionData?.status === 400) {
+        setIsErrorModalOpen(true);
+    }
+
     const uploadedFileKey = actionData?.uploadedFileKey ?? "";
     useEffect(() => {
         if (uploadedFileKey) {
@@ -184,6 +214,27 @@ export default function EditNew() {
 
     return (
         <Form encType="multipart/form-data">
+            <button
+                className="btn btn-primary"
+                onClick={() => setIsDangerModalOpen(true)}>
+                入力データを削除
+            </button>
+            <Modal
+                isOpen={isDangerModalOpen}
+                onClose={() => setIsDangerModalOpen(false)}
+                title="入力データを削除"
+                showCloseButton={false}
+            >
+                <p>入力データを削除しますか？</p>
+                <div className="modal-action">
+                    <button className="btn btn-warning"
+                    onClick={() =>{
+                        clearLocalStorage();
+                        setIsDangerModalOpen(false);
+                    }}>はい</button>
+                    <button className="btn" onClick={() => setIsDangerModalOpen(false)}>いいえ</button>
+                </div>
+            </Modal>
             <div>
                 <textarea
                     name="postTitle"
@@ -265,6 +316,12 @@ export default function EditNew() {
             <div className="my-4">
                 <button className="btn btn-primary w-full" type="submit" onClick={(e) => handleSubmit(e)}>保存</button>
             </div>
+            <Modal isOpen={isSuccessModalOpen} onClose={() => setIsSuccessModalOpen(false)} title="成功" showCloseButton={false}>
+                <p>記事を保存しました。リダイレクトします。</p>
+            </Modal>
+            <Modal isOpen={isErrorModalOpen} onClose={() => setIsErrorModalOpen(false)} title="エラー" showCloseButton={false}>
+                <p>記事の保存に失敗しました</p>
+            </Modal>
         </Form>
     );
 }
