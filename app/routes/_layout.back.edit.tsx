@@ -1,8 +1,8 @@
-import { ActionFunctionArgs, json, redirect } from "@remix-run/cloudflare";
-import { Form, useActionData, useBlocker, useSubmit } from "@remix-run/react";
+import { ActionFunctionArgs, json, LoaderFunctionArgs, redirect } from "@remix-run/cloudflare";
+import { Form, useActionData, useBlocker, useLoaderData, useSubmit } from "@remix-run/react";
 import { marked } from "marked";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { createPost } from "~/modules/db.server";
+import { createPost, getTagCounts } from "~/modules/db.server";
 import { createOGImage, generateFileName, putFileToStorage } from "~/modules/storage.server";
 import { IconType } from 'react-icons';
 import { FaHeading, FaBold, FaItalic, FaLink, FaListUl, FaListOl, FaStrikethrough, FaImage, } from 'react-icons/fa';
@@ -15,12 +15,19 @@ interface ToolbarItem {
   action: () => void;
 }
 
+export async function loader({ context }: LoaderFunctionArgs) {
+    const tagCounts = await getTagCounts(context);
+    return json({ tagCounts });
+}
+
 export default function EditNew() {
     const [markdownContent, setMarkdownContent] = useState("");
     const [postTitle, setPostTitle] = useState("");
     const [summary, setSummary] = useState("");
     const [tags, setTags] = useState("");
     const [isPublic, setIsPublic] = useState(false);
+    const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+    const { tagCounts } = useLoaderData<typeof loader>();
 
     const submit = useSubmit();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -56,11 +63,6 @@ export default function EditNew() {
     const handleSummaryChange = useCallback((value: string) => {
         setSummary(value);
         localStorage.setItem('summary', value);
-    }, []);
-
-    const handleTagsChange = useCallback((value: string) => {
-        setTags(value);
-        localStorage.setItem('tags', value);
     }, []);
 
     const handleIsPublicChange = useCallback((value: boolean) => {
@@ -132,6 +134,45 @@ export default function EditNew() {
         }
     }, [submit]);
 
+    const generateTagSuggestions = useCallback((input: string) => {
+        if (!input.trim()) {
+            setSuggestedTags([]);
+            return;
+        }
+        const inputTags = input.split(' ').filter(tag => tag.trim() !== '');
+        const lastTag = inputTags[inputTags.length - 1].toLowerCase().replace(/^#/, '');
+        
+        if (!lastTag) {
+            setSuggestedTags([]);
+            return;
+        }
+
+        const suggestions = tagCounts
+            .filter(tag => tag.tagName.toLowerCase().includes(lastTag))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5)
+            .map(tag => `${tag.tagName}（${tag.count}）`);
+        setSuggestedTags(suggestions);
+    }, [tagCounts]);
+
+    const handleTagsChange = useCallback((value: string) => {
+        setTags(value);
+        localStorage.setItem('tags', value);
+        generateTagSuggestions(value);
+    }, [generateTagSuggestions]);
+
+    const handleTagSuggestionClick = useCallback((suggestion: string) => {
+        setTags(prevTags => {
+            const tagArray = prevTags.split(' ').filter(tag => tag !== '');
+            tagArray.pop(); // 最後の未完成のタグを削除
+            const newTag = suggestion.split('（')[0]; // カウント部分を除去
+            const newTags = [...tagArray, `#${newTag}`].join(' ') + ' ';
+            localStorage.setItem('tags', newTags);
+            return newTags;
+        });
+        setSuggestedTags([]);
+    }, []);
+
     return (
         <Form encType="multipart/form-data">
             <div>
@@ -196,8 +237,28 @@ export default function EditNew() {
                     </label>
                 </div>
             </div>
-            <div>
-                <input type="text" name="tags" placeholder="タグを入力  #生活 #人生" className="input input-bordered input-primary w-full my-4" value={tags} onChange={(e) => handleTagsChange(e.target.value)} />
+            <div className="relative">
+                <input
+                    type="text"
+                    name="tags"
+                    placeholder="タグを入力  #生活 #人生"
+                    className="input input-bordered input-primary w-full my-4 placeholer-slate-500"
+                    value={tags}
+                    onChange={(e) => handleTagsChange(e.target.value)}
+                />
+                {suggestedTags.length > 0 && (
+                    <div className="absolute z-10 w-full bg-base-100 shadow-lg rounded-md mt-1">
+                        {suggestedTags.map((suggestion, index) => (
+                            <div
+                                key={index}
+                                className="p-2 hover:bg-base-200 cursor-pointer"
+                                onClick={() => handleTagSuggestionClick(suggestion)}
+                            >
+                                {suggestion}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
             <div className="my-4">
                 <button className="btn btn-primary w-full" type="submit" onClick={(e) => handleSubmit(e)}>保存</button>

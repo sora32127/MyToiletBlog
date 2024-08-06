@@ -212,4 +212,34 @@ async function getPostsByTagName(tagName: string, serverContext: AppLoadContext)
     }));
     return postsWithTags;
 }
-export {createPost, getPostByPostId, getRecentPosts, getTagsByPostId, getPostsByTagName};
+
+async function getTagCounts(serverContext: AppLoadContext): Promise<{tagName: string, count: number}[]> {
+    const db = getDBClient(serverContext);
+    const tagCountsById = await db.relPostTags.groupBy({
+        by: ["tagId"],
+        _count: true
+    })
+    const tagIdNameMapping = await db.dimTags.findMany({
+        where: {
+            tagId: {
+                in: tagCountsById.map((tagCount) => tagCount.tagId)
+            }
+        },
+        select: {
+            tagId: true,
+            tagName: true
+        }
+    })
+    const tagCounts = tagCountsById.map((tagCount) => {
+        const tagName = tagIdNameMapping.find((tag) => tag.tagId === tagCount.tagId)?.tagName;
+        if (!tagName){
+            return;
+        }
+        return {
+            tagName,
+            count: tagCount._count
+        }
+    })
+    return tagCounts.filter((tagCount) => tagCount !== undefined) as {tagName: string, count: number}[];
+}
+export {createPost, getPostByPostId, getRecentPosts, getTagsByPostId, getPostsByTagName, getTagCounts};
