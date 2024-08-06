@@ -22,6 +22,15 @@ export default {
   
   plugins: [require("@tailwindcss/typography"), require("daisyui")],
   daisyui: {
-    themes: ["nord", "sunset"],
-  },
+    themes: [{
+      nord: {
+        ...require("daisyui/src/theming/themes")["nord"],
+        "primary": "#dd5660",
+      },
+      sunset: {
+        ...require("daisyui/src/theming/themes")["sunset"],
+        "primary": "#dd5660",
+      }
+    }],
+  }
 } satisfies Config;

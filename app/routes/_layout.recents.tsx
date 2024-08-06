@@ -17,12 +17,10 @@ export default function Recents() {
     return (
         <div>
             <H1>Recent Posts</H1>
-            {tagName && <H2>タグ: {tagName}の検索結果</H2>}
+            {tagName && <H2>タグ: {tagName}</H2>}
             <ul>
                 {posts.map((post) => (
-                    <li key={post.postId}>
-                        <PostShowCard post={post} key={post.postId} />
-                    </li>
+                    <PostShowCard post={post} key={post.postId} />
                 ))}
             </ul>
         </div>

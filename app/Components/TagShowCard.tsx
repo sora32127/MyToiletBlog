@@ -1,13 +1,16 @@
 import { tagSchema } from "~/modules/db.server";
 import { z } from "zod";
 import { NavLink } from "@remix-run/react";
+import { FaTag } from "react-icons/fa";
 
 export default function TagShowCard({tags}: {tags: z.infer<typeof tagSchema>}) {
     return (
-        <div key={tags.tagId} className="badge badge-lg outline m-2 p-2 py-4">
-            <NavLink to={`/recents?tagName=${tags.tagName}`}>
-                #{tags.tagName}
-            </NavLink>
-        </div>
+        <NavLink 
+            to={`/recents?tagName=${tags.tagName}`}
+            className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary transition-colors duration-200 text-white"
+        >
+            <FaTag className="mr-1" />
+            {tags.tagName}
+        </NavLink>
     );
 }
