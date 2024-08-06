@@ -23,16 +23,17 @@ export default function Post() {
     return (
         <div>
             <H1>{post.postTitle}</H1>
+
             <div>
                 <SummaryShowCard postSummary={postSummary.toString()} />
+            </div>
+            <div>
+                <RenderMarkdownIntoHTML markdownContent={post.postContentMD.toString()} />
             </div>
             <div>
                 {tags && tags.map((tag) => (
                     <TagShowCard key={tag.tagId} tags={tag} />
                 ))}
-            </div>
-            <div>
-                <RenderMarkdownIntoHTML markdownContent={post.postContentMD.toString()} />
             </div>
             <ShareButtons currentURL={"https://contradictiononline.org/posts/" + post.postId} postTitle={post.postTitle} />
         </div>
