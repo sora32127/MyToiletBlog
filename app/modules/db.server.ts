@@ -110,6 +110,7 @@ async function getPostByPostId(postId: number, serverContext: AppLoadContext){
     const post = await db.dimPosts.findUnique({
         where: {
             postId,
+            isPublic: 1
         },
     });
     return post;
@@ -167,6 +168,9 @@ async function getRecentPosts(serverContext: AppLoadContext): Promise<z.infer<ty
         orderBy: {
             postUnixTimeGMT: "desc",
         },
+        where: {
+            isPublic: 1
+        },
         take: 10,
     });
     const postsWithTags = await Promise.all(posts.map(async (post) => {
@@ -195,7 +199,8 @@ async function getPostsByTagName(tagName: string, serverContext: AppLoadContext)
                 some: {
                     tagId: tagId.tagId
                 }
-            }
+            },
+            isPublic: 1
         }
     });
     const postsWithTags = await Promise.all(posts.map(async (post) => {
