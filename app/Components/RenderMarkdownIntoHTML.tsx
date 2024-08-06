@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import markdown from 'remark-parse';
 import { visit } from 'unist-util-visit';
 import { useState, useEffect } from 'react';
+import rehypeHighlight from 'rehype-highlight';
 
 export function RenderMarkdownIntoHTML({ markdownContent }: { markdownContent: string }) {
     const [htmlContent, setHtmlContent] = useState<string>('');
@@ -16,6 +17,9 @@ export function RenderMarkdownIntoHTML({ markdownContent }: { markdownContent: s
                 .use(markdown)
                 .use(remarkGfm)
                 .use(remarkRehype)
+                .use(rehypeHighlight, {
+                    detect: true,
+                })
                 .use(() => (tree: any) => {
                     visit(tree, 'element', (node, index, parent) => {
                         if ((node as any).tagName === 'img') {

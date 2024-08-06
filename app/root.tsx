@@ -8,6 +8,8 @@ import {
 import "./tailwind.css";
 import { PageTransitionProgressBar } from "./Components/PageTransitionProgressBar";
 
+import 'highlight.js/styles/tokyo-night-dark.css';
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja">
