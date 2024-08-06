@@ -5,7 +5,7 @@ import { NavLink } from "@remix-run/react";
 import TagShowCard from "./TagShowCard";
 import { FaCalendarAlt, FaChevronRight } from "react-icons/fa";
 
-export function PostEditCard({ post }: { post: z.infer<typeof PostShowCardSchema> }) {
+export function PostEditCard({ post, handlePostSelect }: { post: z.infer<typeof PostShowCardSchema>, handlePostSelect: (postId: number) => void }) {
     if (!post) {
         return null;
     }
@@ -16,6 +16,7 @@ export function PostEditCard({ post }: { post: z.infer<typeof PostShowCardSchema
 
     return (
         <div className="bg-base-200 rounded-lg p-6 transition-all duration-300 hover:shadow-xl my-4">
+            <input type="checkbox" className="checkbox" onChange={() => handlePostSelect(post.postId)} />
             <div className="flex flex-wrap gap-2 mb-3">
                 {post.tagsNames.map((tag) => (
                     <TagShowCard key={tag.tagId} tags={tag} />

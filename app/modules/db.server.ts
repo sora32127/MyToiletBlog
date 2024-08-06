@@ -288,5 +288,17 @@ async function getPostsInBackList(serverContext: AppLoadContext): Promise<z.infe
     return postsWithTags;
 }
 
+export async function deletePosts(postIds: number[], serverContext: AppLoadContext){
+    const db = getDBClient(serverContext);
+    await db.dimPosts.deleteMany({
+        where: {
+            postId: {
+                in: postIds
+            }
+        }
+    })
+    return "success";
+}
+
 
 export {createPost, getPostByPostId, getRecentPosts, getTagsByPostId, getPostsByTagName, getTagCounts, getPostsInBackList};
