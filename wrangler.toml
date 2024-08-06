@@ -1,5 +1,5 @@
 name = "my-toilet-blog"
-
+tail_consumers = [{service = "my-toilet-blog-tail"}]
 main = "./server.ts"
 workers_dev = true
 # https://developers.cloudflare.com/workers/platform/compatibility-dates
@@ -19,3 +19,4 @@ database_id = "ac14b100-c26a-4a60-8407-68bcad02299a"
 [[r2_buckets]]
 binding = "R2"
 bucket_name = "my-toilet-blogs"
+preview_bucket_name = "my-toilet-blogs-preview"

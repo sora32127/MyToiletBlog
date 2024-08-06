@@ -39,4 +39,26 @@ async function generateFileName(){
     return `${ymd}-${uuid}`;
 }
 
-export { putFileToStorage, getFileFromStorageByKey, listKeysInBucket, generateFileName};
+async function createOGImage(postId: number, tags: string[], postTitle: string){
+    const OGIMAGE_GENERATION_ENDPOINT = "https://knj3bm4htc2wiv5auwbhb5p42u0ocjrw.lambda-url.ap-northeast-1.on.aws";
+    const res = await fetch(OGIMAGE_GENERATION_ENDPOINT, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            "post_id": postId,
+            "post_tags": tags,
+            "post_title": postTitle
+        })
+    });
+    const data = await res.json() as { status: string, message: string , key: string};
+    console.log(data);
+    if (data.status === "success"){
+        return data.key;
+    } else {
+        throw new Error(data.message);
+    }
+}
+
+export { putFileToStorage, getFileFromStorageByKey, listKeysInBucket, generateFileName, createOGImage};

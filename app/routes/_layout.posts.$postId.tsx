@@ -1,4 +1,4 @@
-import { json, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json, LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { H1 } from "~/Components/Headings";
 import { getPostByPostId, getTagsByPostId } from "~/modules/db.server";
@@ -34,3 +34,42 @@ export default function Post() {
         </div>
     );
 }
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+    if (!data || !data.post){
+      return [{ title: "Loading..." }];
+    }
+    const title = data.post.postTitle || "";
+    const description = data.post.postSummary || "";
+    const ogLocale = "ja_JP";
+    const ogSiteName = "現実モデリング";
+    const ogType = "article";
+    const ogTitle = title;
+    const ogDescription = description;
+    const ogUrl = data.post.postOGImageURL;
+    const twitterCard = "summary_large_image"
+    const twitterSite = "@contradictionon29"
+    const twitterTitle = title
+    const twitterDescription = description
+    const twitterCreator = "@contradictionon29"
+    const twitterImage = data.post.postOGImageURL
+  
+    return [
+      { title },
+      { description },
+      { property: "og:title", content: ogTitle },
+      { property: "og:description", content: ogDescription },
+      { property: "og:locale", content: ogLocale },
+      { property: "og:site_name", content: ogSiteName },
+      { property: "og:type", content: ogType },
+      { property: "og:url", content: ogUrl },
+      { property: "og:image", content: twitterImage},
+      { name: "twitter:card", content: twitterCard },
+      { name: "twitter:site", content: twitterSite },
+      { name: "twitter:title", content: twitterTitle },
+      { name: "twitter:description", content: twitterDescription },
+      { name: "twitter:creator", content: twitterCreator },
+      { name: "twitter:image", content: twitterImage },
+    ];
+  };
+  

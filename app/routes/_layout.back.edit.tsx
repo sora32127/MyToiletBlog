@@ -3,7 +3,7 @@ import { Form, useActionData, useBlocker, useSubmit } from "@remix-run/react";
 import { marked } from "marked";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { createPost } from "~/modules/db.server";
-import { generateFileName, putFileToStorage } from "~/modules/storage.server";
+import { createOGImage, generateFileName, putFileToStorage } from "~/modules/storage.server";
 import { IconType } from 'react-icons';
 import { FaHeading, FaBold, FaItalic, FaLink, FaListUl, FaListOl, FaStrikethrough, FaImage, } from 'react-icons/fa';
 import { unified } from 'unified';

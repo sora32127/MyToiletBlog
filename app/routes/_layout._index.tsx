@@ -1,70 +1,46 @@
-import { ActionFunctionArgs, json, LoaderFunctionArgs, type MetaFunction } from "@remix-run/cloudflare";
-import { Form, Link, useActionData, useLoaderData, useNavigation, useSubmit } from "@remix-run/react";
-import { useRef, useTransition } from "react";
-import { generateFileName, getMediaUrlList, listKeysInBucket, putFileToStorage } from "~/modules/storage.server";
+import { json, LoaderFunctionArgs, type MetaFunction } from "@remix-run/cloudflare";
+import { useLoaderData } from "@remix-run/react";
+import { PostShowCard } from "~/Components/PostShowCard";
+import { getRecentPosts } from "~/modules/db.server";
 
 export const meta: MetaFunction = () => {
+  const title = "現実モデリング";
+  const description = "contradiction29の個人ブログだよ";
+  const defaultOGImageURL = "https://x.com/contradiction29/photo"
   return [
-    { title: "現実モデリング" },
-    {
-      name: "description",
-      content: "contradiction29の個人ブログだよ",
-    },
+    { title },
+    { description },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:locale", content: "ja_JP" },
+    { property: "og:site_name", content: "現実モデリング" },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: "https://contradictionononline.com" },
+    { property: "og:image", content: defaultOGImageURL },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:site", content: "https://x.com/contradiction29" },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
+    { name: "twitter:creator", content: "https://x.com/contradiction29" },
+    { name: "twitter:image", content: defaultOGImageURL },
   ];
 };
 
-export async function loader({ request, context }: LoaderFunctionArgs) {
-  const keyList = await listKeysInBucket(context);
-  return json({ keyList });
+export async function loader({ context }: LoaderFunctionArgs) {
+  const recents = await getRecentPosts(context);
+  return json({ recents });
 }
 
 export default function Index() {
-  const { keyList } = useLoaderData<typeof loader>();
-  const formRef = useRef<HTMLFormElement>(null);
-
-  const actionData = useActionData<typeof action>();
-
-  const submit = useNavigation();
-  const isUploading = submit.state === "submitting";
-  
+  const { recents } = useLoaderData<typeof loader>();
   
   return (
-    <div className="font-sans p-4">
-      <h1 className="text-3xl">京都はんなり明朝</h1>
-      <div>
-        <Form
-          replace
-          method="post"
-          encType="multipart/form-data"
-          ref={formRef}
-        >
-          <input type="file" name="file" accept="image/*" />
-          <button type="submit" disabled={isUploading}>Upload</button>
-        </Form>
-      </div>
-      {actionData && (
-        <>
-          <p>{actionData.message}</p>
-          <p>{JSON.stringify(actionData.object, null, 2)}</p>
-        </>
-      )}
-      <ul>
-        {keyList.map((key) => (
-          <li key={key}><Link to={`/images/${key}`}>
-            <img src={`/images/${key}`} alt={key} />
-            </Link></li>
-        ))}
-      </ul>
+    <div>
+        <ul>
+          {recents.map((post) => (
+            <PostShowCard key={post.postId} post={post} />
+          ))}
+        </ul>
     </div>
   );
-}
-
-
-
-export async function action({ request, context }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const file = formData.get("file") as File;
-  const fileName = await generateFileName();
-  const response = await putFileToStorage(context, fileName, file);
-  return json({ message: "Uploaded", object: { response }, status: 200 });
 }

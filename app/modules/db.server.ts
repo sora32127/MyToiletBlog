@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { AppLoadContext } from "@remix-run/server-runtime";
 import { getNowUnixTimeGMT } from "./util.server";
 import { z } from "zod";
+import { createOGImage } from "./storage.server";
 
 interface Env {
     DB: D1Database;
@@ -90,6 +91,16 @@ async function createPost(postTitle: string, postContentMD:string, tags: string,
                 tagId: tagId.tagId
             }
         })
+    })
+    const ogImageKey = await createOGImage(post.postId, tagsArray, postTitle);
+    console.log("OGImagekey", ogImageKey)
+    await db.dimPosts.update({
+        where: {
+            postId: post.postId
+        },
+        data: {
+            postOGImageURL: `https://contradictiononline.org/images/${ogImageKey}`
+        }
     })
     return post;
 }
