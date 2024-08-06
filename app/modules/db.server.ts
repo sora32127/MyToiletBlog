@@ -51,14 +51,30 @@ if (import.meta.env.MODE !== "production" && global.__prisma) {
 }
 
 
-async function createPost(postTitle: string, postContentMD:string, tags: string, isPublic: String, summary: string, serverContext: AppLoadContext){
+async function createPost(postTitle: string, postContentMD:string, tags: string, isPublic: String, summary: string, postId:number | null = null, serverContext: AppLoadContext){
     console.log(tags);
     const db = getDBClient(serverContext);
     const postUnixTimeGMT = await getNowUnixTimeGMT();
     const isPublicInt = isPublic === "true" ? 1 : 0;
-    const post = await db.dimPosts.create({
-        data: {
-            postTitle,
+    if (postId){
+        const post = await db.dimPosts.update({
+            where: {
+                postId
+            },
+            data: {
+                postTitle,
+                postContentMD,
+                postUnixTimeGMT,
+                postSummary: summary,
+                postOGImageURL: "",
+                isPublic: isPublicInt,
+            }
+        })
+    }
+    else {
+        const post = await db.dimPosts.create({
+            data: {
+                postTitle,
             postContentMD,
             postUnixTimeGMT,
             postSummary: summary,
@@ -104,16 +120,27 @@ async function createPost(postTitle: string, postContentMD:string, tags: string,
     })
     return post;
 }
+}
 
-async function getPostByPostId(postId: number, serverContext: AppLoadContext){
+async function getPostByPostId(postId: number, serverContext: AppLoadContext, isEditPage: boolean = false){
     const db = getDBClient(serverContext);
-    const post = await db.dimPosts.findUnique({
-        where: {
+    if (isEditPage){
+        const post = await db.dimPosts.findUnique({
+            where: {
             postId,
-            isPublic: 1
         },
-    });
-    return post;
+        })
+        return post;
+    }
+    else {
+        const post = await db.dimPosts.findUnique({
+            where: {
+                postId,
+                isPublic: 1
+            },
+        })
+        return post;
+    }
 }
 
 export const tagSchema = z.object({
@@ -242,4 +269,24 @@ async function getTagCounts(serverContext: AppLoadContext): Promise<{tagName: st
     })
     return tagCounts.filter((tagCount) => tagCount !== undefined) as {tagName: string, count: number}[];
 }
-export {createPost, getPostByPostId, getRecentPosts, getTagsByPostId, getPostsByTagName, getTagCounts};
+
+async function getPostsInBackList(serverContext: AppLoadContext): Promise<z.infer<typeof PostShowCardSchema>[]> {
+    const db = getDBClient(serverContext);
+    const posts = await db.dimPosts.findMany({
+        orderBy: {
+            postUnixTimeGMT: "desc",
+        },
+        take: 10,
+    });
+    const postsWithTags = await Promise.all(posts.map(async (post) => {
+        const tags = await getTagsByPostId(post.postId, serverContext);
+        return {
+            ...post,
+            tagsNames: tags
+        }
+    }));
+    return postsWithTags;
+}
+
+
+export {createPost, getPostByPostId, getRecentPosts, getTagsByPostId, getPostsByTagName, getTagCounts, getPostsInBackList};

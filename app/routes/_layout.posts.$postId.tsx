@@ -9,7 +9,7 @@ import { RenderMarkdownIntoHTML } from "~/Components/RenderMarkdownIntoHTML";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
     const postId = params.postId;
-    const post = await getPostByPostId(Number(postId), context);
+    const post = await getPostByPostId(Number(postId), context, false);
     const tags = await getTagsByPostId(Number(postId), context);
     return json({ post, tags });
 }

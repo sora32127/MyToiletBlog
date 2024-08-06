@@ -1,9 +1,8 @@
-import { ActionFunctionArgs, json, LoaderFunctionArgs, redirect } from "@remix-run/cloudflare";
-import { Form, useActionData, useBlocker, useLoaderData, useSubmit } from "@remix-run/react";
-import { marked } from "marked";
+import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { Form, useActionData, useLoaderData, useSubmit } from "@remix-run/react";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { createPost, getTagCounts } from "~/modules/db.server";
-import { createOGImage, generateFileName, putFileToStorage } from "~/modules/storage.server";
+import { createPost, getPostByPostId, getTagCounts, getTagsByPostId } from "~/modules/db.server";
+import { generateFileName, putFileToStorage } from "~/modules/storage.server";
 import { IconType } from 'react-icons';
 import { FaHeading, FaBold, FaItalic, FaLink, FaListUl, FaListOl, FaStrikethrough, FaImage, } from 'react-icons/fa';
 import { RenderMarkdownIntoHTML } from "~/Components/RenderMarkdownIntoHTML";
@@ -15,19 +14,27 @@ interface ToolbarItem {
   action: () => void;
 }
 
-export async function loader({ context }: LoaderFunctionArgs) {
+export async function loader({ context, request }: LoaderFunctionArgs) {
     const tagCounts = await getTagCounts(context);
-    return json({ tagCounts });
+    const url = new URL(request.url);
+    const postId = url.searchParams.get("postId");
+    if (postId) {
+        const post = await getPostByPostId(Number(postId), context, true);
+        const tagNames = await getTagsByPostId(Number(postId), context);
+        return json({ post, tagCounts, tagNames, postId });
+    }
+    return json({ post: null, tagCounts, tagNames: [], postId: null });
 }
 
 export default function EditNew() {
-    const [markdownContent, setMarkdownContent] = useState("");
-    const [postTitle, setPostTitle] = useState("");
-    const [summary, setSummary] = useState("");
-    const [tags, setTags] = useState("");
-    const [isPublic, setIsPublic] = useState(false);
+    const { post, postId, tagCounts, tagNames } = useLoaderData<typeof loader>();
+
+    const [markdownContent, setMarkdownContent] = useState(post?.postContentMD ?? "");
+    const [postTitle, setPostTitle] = useState(post?.postTitle ?? "");
+    const [summary, setSummary] = useState(post?.postSummary ?? "");
+    const [tags, setTags] = useState(tagNames.map(tag => tag && tag.tagName).join(" ") ?? "");
+    const [isPublic, setIsPublic] = useState(post?.isPublic === 1);
     const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
-    const { tagCounts } = useLoaderData<typeof loader>();
 
     const submit = useSubmit();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -35,19 +42,21 @@ export default function EditNew() {
 
     useEffect(() => {
         const savedMarkdownContent = localStorage.getItem('markdownContent');
-        if (savedMarkdownContent) setMarkdownContent(savedMarkdownContent);
+        // postIdに値がある場合＝既存の記事を編集する場合＝stateで初期化した値をそのまま使用する
+        // postIdに値がない場合＝新規投稿する場合＝localStorageの値を使用する
+        if (savedMarkdownContent && !postId) setMarkdownContent(savedMarkdownContent);
 
         const savedPostTitle = localStorage.getItem('postTitle');
-        if (savedPostTitle) setPostTitle(savedPostTitle);
+        if (savedPostTitle && !postId) setPostTitle(savedPostTitle);
 
         const savedSummary = localStorage.getItem('summary');
-        if (savedSummary) setSummary(savedSummary);
+        if (savedSummary && !postId) setSummary(savedSummary);
 
         const savedTags = localStorage.getItem('tags');
-        if (savedTags) setTags(savedTags);
+        if (savedTags && !postId) setTags(savedTags);
 
         const savedIsPublic = localStorage.getItem('isPublic');
-        if (savedIsPublic) setIsPublic(savedIsPublic === 'true');
+        if (savedIsPublic && !postId) setIsPublic(savedIsPublic === 'true');
     }, []);
 
     const handleMarkdownContentChange = useCallback((value: string) => {
@@ -79,7 +88,7 @@ export default function EditNew() {
         formData.append("tags", tags);
         formData.append("isPublic", isPublic.toString());
         formData.append("actionType", "createPost");
-        console.log(markdownContent, postTitle, summary, tags, isPublic);
+        formData.append("postId", postId ?? "");
         submit(formData, {
             method: "post"
         });
@@ -275,10 +284,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
         if (!postTitle || !markdownContent) {
             return json({ error: "Invalid form data",status: 400, uploadedFileKey: "" });
         }
-    
-        const post = await createPost(postTitle, markdownContent, tags, isPublic, summary, context);
+        const postId = formData.get("postId") as string;
+        const post = await createPost(postTitle, markdownContent, tags, isPublic, summary, Number(postId), context);
+        if (!post) {
+            return json({ error: "Failed to create post", status: 500 });
+        }
         const newPostUrl = `/posts/${post.postId}`;
-        return redirect(newPostUrl);
+        return json({ message: "Created", newPostUrl, status: 200 });
     } else if (actionType === "uploadMedia"){
         const file = formData.get("file") as File;
         const fileName = await generateFileName();
