@@ -15,15 +15,26 @@ declare global {
 let prisma: PrismaClient | undefined;
 
 function createPrismaClient(env: Env): PrismaClient {
-    const adapter = new PrismaD1(env.DB);
-    return new PrismaClient({ adapter });
+    const environment = import.meta.env.MODE;
+    if (environment === "production"){
+        const adapter = new PrismaD1(env.DB);
+        return new PrismaClient({ adapter });
+    }
+    else {
+        // 開発環境の場合はローカルのsqliteファイルを使用する。ローカル開発環境のファイルパスは./prisma/schema.prismaに記載されているので、通常のPrismaClientをInstantiateするとその設定が有効になる。
+        // Cloudflareのwranglerでは、ローカル開発時にwrangler用のSQLiteをエミュレートするが、その設定ではインタラクティブシェルが使えないので、開発体験があまり良くない
+        // そのため、開発環境でPrismaClientをInstantiateするときには、ローカルのsqliteファイルを使用する
+        return new PrismaClient();
+    }
 }
+
 function getDBClient(serverContext: AppLoadContext): PrismaClient {
     if (prisma) {
         return prisma;
     }
 
     const env = serverContext.cloudflare.env as Env;
+    const environment = import.meta.env.MODE;
     prisma = createPrismaClient(env);
 
     // 開発環境でのホットリロード対策
@@ -43,12 +54,21 @@ async function createPost(postTitle: string, postContentMD:string, tags: string,
     console.log(tags);
     const db = getDBClient(serverContext);
     const postUnixTimeGMT = await getNowUnixTimeGMT();
-    // #生活 #人間　→　["生活", "人間"]
-    const tagsArray = tags.split(" ").map((tagName) => tagName.replace("#", ""));
-    console.log(tagsArray);
     const isPublicInt = isPublic === "true" ? 1 : 0;
+    const post = await db.dimPosts.create({
+        data: {
+            postTitle,
+            postContentMD,
+            postUnixTimeGMT,
+            postSummary: summary,
+            postOGImageURL: "",
+            isPublic: isPublicInt,
+        },
+    });
+
+    const tagsArray = tags.split(" ").map((tagName) => tagName.replace("#", ""));
     tagsArray.forEach(async (tagName) => {
-        let tagId = await db.dimTags.findUniqueOrThrow({
+        let tagId = await db.dimTags.findUnique({
             select: {
                 tagId: true
             },
@@ -62,27 +82,15 @@ async function createPost(postTitle: string, postContentMD:string, tags: string,
                     tagName
                 }
             })
-            tagId = newTag.tagId;
+            tagId = {"tagId": newTag.tagId};
         }
         await db.relPostTags.create({
             data: {
                 postId: post.postId,
-                tagId: tagId
+                tagId: tagId.tagId
             }
         })
     })
-
-
-
-    const post = await db.dimPosts.create({
-        data: {
-            postTitle,
-            postContentMD,
-            postUnixTimeGMT,
-            postSummary: summary,
-            postOGImageURL: "",
-        },
-    });
     return post;
 }
 
@@ -96,14 +104,53 @@ async function getPostByPostId(postId: number, serverContext: AppLoadContext){
     return post;
 }
 
-export const postSchema = z.object({
+export const tagSchema = z.object({
+    tagName: z.string(),
+    tagId: z.number(),
+});
+
+async function getTagsByPostId(postId: number, serverContext: AppLoadContext): Promise<z.infer<typeof tagSchema>[]> {
+    const db = getDBClient(serverContext);
+    const tagIds = await db.relPostTags.findMany({
+        where: {
+            postId,
+        },
+        select: {
+            tagId: true
+        }
+    });
+    const tagNamesRaw = await db.dimTags.findMany({
+        where: {
+            tagId: {
+                in: tagIds.map((tagId) => tagId.tagId)
+            }
+        },
+        select: {
+            tagName: true,
+            tagId: true
+        }
+    });
+    const tagNames = tagNamesRaw.map((tag) => {
+        return {
+            tagName: tag.tagName,
+            tagId: tag.tagId
+        }
+    });
+    return tagNames;
+}
+
+export const PostShowCardSchema = z.object({
     postId: z.number(),
     postTitle: z.string(),
     postContentMD: z.string(),
     postUnixTimeGMT: z.number(),
+    postSummary: z.string(),
+    postOGImageURL: z.string(),
+    isPublic: z.number(),
+    tagsNames: z.array(tagSchema),
 });
 
-async function getRecentPosts(serverContext: AppLoadContext): Promise<z.infer<typeof postSchema>[]> {
+async function getRecentPosts(serverContext: AppLoadContext): Promise<z.infer<typeof PostShowCardSchema>[]> {
     const db = getDBClient(serverContext);
     const posts = await db.dimPosts.findMany({
         orderBy: {
@@ -111,6 +158,13 @@ async function getRecentPosts(serverContext: AppLoadContext): Promise<z.infer<ty
         },
         take: 10,
     });
-    return posts;
+    const postsWithTags = await Promise.all(posts.map(async (post) => {
+        const tags = await getTagsByPostId(post.postId, serverContext);
+        return {
+            ...post,
+            tagsNames: tags
+        }
+    }));
+    return postsWithTags;
 }
-export {createPost, getPostByPostId, getRecentPosts};
+export {createPost, getPostByPostId, getRecentPosts, getTagsByPostId};

@@ -59,3 +59,7 @@ table {
 table td {
     @apply border border-gray-300 px-4 py-2;
 }
+
+.markdownEditor {
+    field-sizing: content;
+}

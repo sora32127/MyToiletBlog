@@ -218,7 +218,7 @@ export default function EditNew() {
                             ref={textareaRef}
                             value={markdownContent}
                             onChange={(e) => handleMarkdownContentChange(e.target.value)}
-                            className="textarea textarea-bordered w-full min-h-[32rem]"
+                            className="textarea textarea-bordered w-full min-h-[32rem] markdownEditor"
                         />
                         <input
                             type="file"

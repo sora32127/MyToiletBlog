@@ -8,12 +8,30 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = "file:./dev.db"
 }
 
 model dimPosts {
-  postId Int @id @default(autoincrement())
-  postTitle String
-  postUnixTimeGMT Int
-  postContentMD String
+  postId Int @id @default(autoincrement()) @map("post_id")
+  postTitle String @map("post_title")
+  postUnixTimeGMT Int @map("post_unix_time_gmt")
+  postContentMD String @map("post_content_md")
+  postSummary String @map("post_summary")
+  postOGImageURL String @map("post_og_image_url")
+  isPublic Int @map("is_public")
+  relPostTags relPostTags[]
+}
+
+model relPostTags {
+  relPostTagsId Int @id @default(autoincrement()) @map("rel_post_tags_id")
+  postId Int @map("post_id")
+  tagId Int @map("tag_id")
+  dimPosts dimPosts @relation(fields: [postId], references: [postId], onDelete: Cascade)
+  dimTags dimTags @relation(fields: [tagId], references: [tagId], onDelete: Cascade)
+}
+
+model dimTags {
+  tagId Int @id @default(autoincrement()) @map("tag_id")
+  tagName String @map("tag_name") @unique
+  relPostTags relPostTags[]
 }
