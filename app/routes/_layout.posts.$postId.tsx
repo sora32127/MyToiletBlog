@@ -5,17 +5,21 @@ import { getPostByPostId, getTagsByPostId } from "~/modules/db.server";
 import TagShowCard from "~/Components/TagShowCard";
 import SummaryShowCard from "~/Components/SummaryShowCard";
 import ShareButtons from "~/Components/ShareButtons";
-import { RenderMarkdownIntoHTML } from "~/Components/RenderMarkdownIntoHTML";
+import { renderMarkdown } from "~/modules/rendermarkdown.server";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
     const postId = params.postId;
-    const post = await getPostByPostId(Number(postId), context, false);
+    const post = await getPostByPostId(Number(postId), context, false)
+    if (!post) {
+        return;
+    }
     const tags = await getTagsByPostId(Number(postId), context);
-    return json({ post, tags });
+    const postHTML = await renderMarkdown(post.postContentMD.toString())
+    return json({ post, tags, postHTML });
 }
 
 export default function Post() {
-    const { post, tags } = useLoaderData<typeof loader>();
+    const { post, tags, postHTML } = useLoaderData<typeof loader>();
     if (!post) {
         return <div>Post not found</div>;
     }
@@ -27,13 +31,11 @@ export default function Post() {
             <div>
                 <SummaryShowCard postSummary={postSummary.toString()} />
             </div>
-            {/* <div>
-                <RenderMarkdownIntoHTML markdownContent={post.postContentMD.toString()} />
-            </div> */}
+            <div dangerouslySetInnerHTML={{ __html: postHTML }} />
             <div className="my-8 flex">
-                {tags && tags.map((tag) => (
-                    <div className="mx-1">
-                    <TagShowCard key={tag.tagId} tags={tag} />
+                {tags && tags.map((tag: any) => (
+                    <div key={tag.tagId} className="mx-1">
+                        <TagShowCard tags={tag} />
                     </div>
                 ))}
             </div>
