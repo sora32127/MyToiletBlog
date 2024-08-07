@@ -325,5 +325,15 @@ export async function deletePosts(postIds: number[], serverContext: AppLoadConte
     return "success";
 }
 
+export async function getPostsInSitemap(serverContext: AppLoadContext){
+    const db = getDBClient(serverContext);
+    const posts = await db.dimPosts.findMany({
+        where: {
+            isPublic: 1
+        }
+    })
+    return posts;
+}
+
 
 export {createPost, getPostByPostId, getRecentPosts, getTagsByPostId, getPostsByTagName, getTagCounts, getPostsInBackList};
