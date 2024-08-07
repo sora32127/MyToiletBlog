@@ -40,7 +40,7 @@ async function generateFileName(){
 }
 
 async function createOGImage(postId: number, tags: string[], postTitle: string){
-    const OGIMAGE_GENERATION_ENDPOINT = "https://knj3bm4htc2wiv5auwbhb5p42u0ocjrw.lambda-url.ap-northeast-1.on.aws";
+    const OGIMAGE_GENERATION_ENDPOINT = import.meta.env.OGIMAGE_GENERATION_ENDPOINT;
     const res = await fetch(OGIMAGE_GENERATION_ENDPOINT, {
         method: "POST",
         headers: {
@@ -53,7 +53,6 @@ async function createOGImage(postId: number, tags: string[], postTitle: string){
         })
     });
     const data = await res.json() as { status: string, message: string , key: string};
-    console.log(data);
     if (data.status === "success"){
         return data.key;
     } else {
