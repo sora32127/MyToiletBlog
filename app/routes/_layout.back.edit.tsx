@@ -145,16 +145,18 @@ export default function EditNew() {
         setIsPublic(false);
     }
 
-    if (actionData?.status === 200) {
-        setIsSuccessModalOpen(true);
-        setTimeout(() => {
-            navigate(actionData.newPostUrl);
-            clearLocalStorage();
-        }, 1000);
-    }
-    else if (actionData?.status === 400) {
-        setIsErrorModalOpen(true);
-    }
+    useEffect(() => {
+        if (actionData?.status === 200) {
+            setIsSuccessModalOpen(true);
+            const timer = setTimeout(() => {
+                navigate(actionData.newPostUrl);
+                clearLocalStorage();
+            }, 1000);
+            return () => clearTimeout(timer);
+        } else if (actionData?.status === 400) {
+            setIsErrorModalOpen(true);
+        }
+    }, [actionData, navigate]);
 
     const uploadedFileKey = actionData?.uploadedFileKey ?? "";
     useEffect(() => {

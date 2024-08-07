@@ -82,8 +82,8 @@ async function createPost(postTitle: string, postContentMD:string, tags: string,
             isPublic: isPublicInt,
         },
     });
-
-    const tagsArray = tags.split(" ").map((tagName) => tagName.replace("#", ""));
+    // tagNameに\sが含まれている場合は、\sを除去してからタグを作成する
+    const tagsArray = tags.split(" ").map((tagName) => tagName.replace("#", "")).filter((tagName) => tagName !== "");
     tagsArray.forEach(async (tagName) => {
         let tagId = await db.dimTags.findUnique({
             select: {
