@@ -36,6 +36,7 @@ export async function getAuthenticator(serverContext: AppLoadContext){
 			callbackURL: callbackURL,
 		},
 		async ({ profile }) => {
+			console.log("profile in auth.server.ts", profile);
 			const userId = profile.id;
 			return userId == adminUserId;
 		}

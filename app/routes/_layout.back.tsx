@@ -1,7 +1,9 @@
 import { LoaderFunctionArgs, json } from "@remix-run/cloudflare";
-import { Form, Outlet, useLoaderData } from "@remix-run/react";
+import { Form, NavLink, Outlet, useLoaderData } from "@remix-run/react";
 import { getAuthenticator, isAuthenticated } from "../modules/auth.server";
 import React from "react";
+import { H1 } from "../Components/Headings";
+
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
 	const isValidUser = await isAuthenticated(context, request);
@@ -14,10 +16,12 @@ export default function Index() {
 	if (isValidUser) {
 		return (
 			<>
-				<p>you are authenticated</p>
 				<Form action="/api/auth/signout" method="post">
-					<button type="submit" className="btn btn-primary">サインアウト</button>
+					<button type="submit" className="btn btn-primary m-4">サインアウト</button>
 				</Form>
+                <NavLink to="/" className="btn btn-primary m-4">ホームに戻る</NavLink>
+                <NavLink to="/back/edit" className="btn btn-primary m-4">記事作成</NavLink>
+                <NavLink to="/back/list" className="btn btn-primary m-4">記事一覧</NavLink>
                 <Outlet />
 			</>
 		);
