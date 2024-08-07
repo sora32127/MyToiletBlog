@@ -39,24 +39,32 @@ async function generateFileName(){
     return `${ymd}-${uuid}`;
 }
 
-async function createOGImage(postId: number, tags: string[], postTitle: string){
-    const OGIMAGE_GENERATION_ENDPOINT = import.meta.env.OGIMAGE_GENERATION_ENDPOINT;
-    const res = await fetch(OGIMAGE_GENERATION_ENDPOINT, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            "post_id": postId,
-            "post_tags": tags,
-            "post_title": postTitle
-        })
-    });
-    const data = await res.json() as { status: string, message: string , key: string};
-    if (data.status === "success"){
-        return data.key;
-    } else {
-        throw new Error(data.message);
+async function createOGImage(postId: number, tags: string[], postTitle: string, serverContext: AppLoadContext){ 
+    const env = serverContext.cloudflare.env as any;
+    const OGIMAGE_GENERATION_ENDPOINT = env.OGIMAGE_GENERATION_ENDPOINT;
+    try { 
+        console.log("OGIMAGE_GENERATION_ENDPOINT", OGIMAGE_GENERATION_ENDPOINT);
+        const res = await fetch(OGIMAGE_GENERATION_ENDPOINT, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                "post_id": postId,
+                "post_tags": tags,
+                "post_title": postTitle
+                })
+        });
+        console.log("OGImageGenerationResponse", res);
+        const data = await res.json() as { status: string, message: string , key: string};
+        if (data.status === "success"){
+            return data.key;
+        } else {
+            throw new Error(data.message);
+        }
+    } catch (error) {
+        console.error(error);
+        throw new Error("Failed to create OG image");
     }
 }
 

@@ -130,7 +130,7 @@ async function createPost(postTitle: string, postContentMD:string, tags: string,
             }
         })
     })
-    const ogImageKey = await createOGImage(post.postId, tagsArray, postTitle);
+    const ogImageKey = await createOGImage(post.postId, tagsArray, postTitle, serverContext);
     console.log("OGImagekey", ogImageKey)
     await db.dimPosts.update({
         where: {
