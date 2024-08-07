@@ -56,10 +56,10 @@ export default function ShareButtons({ currentURL, postTitle }: ShareButtonsProp
 
     return (
         <div className="flex justify-center items-center space-x-4">
-           <button type="button">
+           <button type="button" className="p-0 overflow-hidden rounded-lg">
                 <a
                     href="https://b.hatena.ne.jp/entry/"
-                    className="hatena-bookmark-button"
+                    className="hatena-bookmark-button block"
                     data-hatena-bookmark-layout="vertical-normal"
                     data-hatena-bookmark-lang="ja"
                     title="このエントリーをはてなブックマークに追加"
@@ -68,8 +68,8 @@ export default function ShareButtons({ currentURL, postTitle }: ShareButtonsProp
                         src="https://b.st-hatena.com/images/v4/public/entry-button/button-only@2x.png"
                         alt="このエントリーをはてなブックマークに追加"
                         width="20"
-                        height="10"
-                        style={{ border: 'none' }}
+                        height="20"
+                        style={{ border: 'radius' }}
                     />
                 </a>
             </button>
