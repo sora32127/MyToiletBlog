@@ -183,6 +183,7 @@ export default function EditNew() {
     const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            event.preventDefault();
             const formData = new FormData();
             formData.append("file", file);
             formData.append("actionType", "uploadMedia");
@@ -370,6 +371,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
         const file = formData.get("file") as File;
         const fileName = await generateFileName();
         const key = await putFileToStorage(context, fileName, file);
-        return json({ message: "Uploaded", uploadedFileKey: key, status: 200 });
+        return json({ message: "Successfully uploaded", uploadedFileKey: key, status: 201 });
     }
 }
