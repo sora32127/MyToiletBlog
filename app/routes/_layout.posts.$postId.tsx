@@ -27,9 +27,9 @@ export default function Post() {
             <div>
                 <SummaryShowCard postSummary={postSummary.toString()} />
             </div>
-            <div>
+            {/* <div>
                 <RenderMarkdownIntoHTML markdownContent={post.postContentMD.toString()} />
-            </div>
+            </div> */}
             <div className="my-8 flex">
                 {tags && tags.map((tag) => (
                     <div className="mx-1">

@@ -56,23 +56,6 @@ export default function ShareButtons({ currentURL, postTitle }: ShareButtonsProp
 
     return (
         <div className="flex justify-center items-center space-x-4">
-           <button type="button" className="p-0 overflow-hidden rounded-lg">
-                <a
-                    href="https://b.hatena.ne.jp/entry/"
-                    className="hatena-bookmark-button block"
-                    data-hatena-bookmark-layout="vertical-normal"
-                    data-hatena-bookmark-lang="ja"
-                    title="このエントリーをはてなブックマークに追加"
-                >
-                    <img
-                        src="https://b.st-hatena.com/images/v4/public/entry-button/button-only@2x.png"
-                        alt="このエントリーをはてなブックマークに追加"
-                        width="20"
-                        height="20"
-                        style={{ border: 'radius' }}
-                    />
-                </a>
-            </button>
             {shareButtons.map((button) => (
                     <button key={button.name} type="button" className={`${button.bgColor} flex items-center justify-center space-x-2 px-4 py-2 rounded-full`}>
                         <a href={button.url} className="flex items-center">
