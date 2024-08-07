@@ -31,7 +31,7 @@ export default function Post() {
             <div>
                 <SummaryShowCard postSummary={postSummary.toString()} />
             </div>
-            <div dangerouslySetInnerHTML={{ __html: postHTML }} />
+            <div dangerouslySetInnerHTML={{ __html: postHTML }} className="markdownHTML" />
             <div className="my-8 flex">
                 {tags && tags.map((tag: any) => (
                     <div key={tag.tagId} className="mx-1">

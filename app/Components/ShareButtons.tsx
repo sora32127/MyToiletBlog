@@ -55,7 +55,7 @@ export default function ShareButtons({ currentURL, postTitle }: ShareButtonsProp
 
 
     return (
-        <div className="flex justify-center items-center space-x-4">
+        <div className="flex justify-center items-center space-x-4 py-8 my-8 bg-base-200 rounded-full">
             {shareButtons.map((button) => (
                     <button key={button.name} type="button" className={`${button.bgColor} flex items-center justify-center space-x-2 px-4 py-2 rounded-full`}>
                         <a href={button.url} className="flex items-center">
