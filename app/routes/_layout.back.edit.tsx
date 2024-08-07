@@ -7,6 +7,7 @@ import { IconType } from 'react-icons';
 import { FaHeading, FaBold, FaItalic, FaLink, FaListUl, FaListOl, FaStrikethrough, FaImage, } from 'react-icons/fa';
 import { RenderMarkdownIntoHTML } from "~/Components/RenderMarkdownIntoHTML";
 import { Modal } from "~/Components/Modal";
+import { TagInput } from "~/Components/TagInput";
 
 interface ToolbarItem {
   label: string;
@@ -25,6 +26,25 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     }
     return json({ post: null, tagCounts, tagNames: [], postId: null });
 }
+
+const createFormData = (
+    markdownContent: string,
+    postTitle: string,
+    summary: string,
+    tags: string,
+    isPublic: boolean,
+    postId: string | null
+) => {
+    const formData = new FormData();
+    formData.append("markdownContent", markdownContent);
+    formData.append("postTitle", postTitle);
+    formData.append("summary", summary);
+    formData.append("tags", tags);
+    formData.append("isPublic", isPublic.toString());
+    formData.append("actionType", "createPost");
+    formData.append("postId", postId ?? "");
+    return formData;
+};
 
 export default function EditNew() {
     const { post, postId, tagCounts, tagNames } = useLoaderData<typeof loader>();
@@ -79,16 +99,9 @@ export default function EditNew() {
         localStorage.setItem('isPublic', value.toString());
     }, []);
 
-    const handleSubmit = async (e: React.FormEvent<HTMLButtonElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData();
-        formData.append("markdownContent", markdownContent);
-        formData.append("postTitle", postTitle);
-        formData.append("summary", summary);
-        formData.append("tags", tags);
-        formData.append("isPublic", isPublic.toString());
-        formData.append("actionType", "createPost");
-        formData.append("postId", postId ?? "");
+        const formData = createFormData(markdownContent, postTitle, summary, tags, isPublic, postId);
         submit(formData, {
             method: "post"
         });
@@ -217,7 +230,7 @@ export default function EditNew() {
     }, []);
 
     return (
-        <Form encType="multipart/form-data">
+        <Form encType="multipart/form-data" onSubmit={(e) => handleSubmit(e)}>
             <button
                 className="btn btn-primary"
                 onClick={() => setIsDangerModalOpen(true)}>
@@ -239,23 +252,29 @@ export default function EditNew() {
                     <button className="btn" onClick={() => setIsDangerModalOpen(false)}>いいえ</button>
                 </div>
             </Modal>
-            <div>
-                <textarea
-                    name="postTitle"
-                    placeholder="タイトル"
-                    className="textarea textarea-bordered w-full my-4"
-                    value={postTitle}
-                    onChange={(e) => handlePostTitleChange(e.target.value)}
-                />
-            </div>
-            <div>
-                <textarea
-                    name="summary"
-                    placeholder="サマリー"
-                    className="textarea textarea-bordered w-full my-4"
-                    value={summary}
-                    onChange={(e) => handleSummaryChange(e.target.value)}
-                />
+            <div className="space-y-6 my-6">
+                <div>
+                    <label htmlFor="postTitle" className="block text-sm font-medium text-base-content mb-2">タイトル</label>
+                    <textarea
+                        id="postTitle"
+                        name="postTitle"
+                        placeholder="タイトルを入力してください"
+                        className="textarea textarea-bordered w-full"
+                        value={postTitle}
+                        onChange={(e) => handlePostTitleChange(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="summary" className="block text-sm font-medium text-base-content mb-2">サマリー</label>
+                    <textarea
+                        id="summary"
+                        name="summary"
+                        placeholder="記事の要約を入力してください"
+                        className="textarea textarea-bordered w-full"
+                        value={summary}
+                        onChange={(e) => handleSummaryChange(e.target.value)}
+                    />
+                </div>
             </div>
             <div className="my-4">
                 <div className="card w-full bg-base-100 border">
@@ -288,37 +307,30 @@ export default function EditNew() {
             <div className="my-4">
                 <div className="form-control">
                     <label className="label cursor-pointer">
-                        <div className="flex items-center space-x-2">
-                            <span className="label-text">公開</span>
-                            <input type="checkbox" className="toggle toggle-primary " checked={isPublic} onChange={() => handleIsPublicChange(!isPublic)} />
-                        </div>
+                        <span className="label-text">公開</span>
+                        <input
+                            type="checkbox"
+                            className="toggle toggle-primary"
+                            checked={isPublic}
+                            onChange={() => handleIsPublicChange(!isPublic)}
+                            onKeyDown={(e) => {
+                                e.preventDefault();
+                                if (e.key === 'Enter') {
+                                    handleIsPublicChange(!isPublic);
+                                }
+                            }}
+                        />
                     </label>
                 </div>
             </div>
-            <div className="relative">
-                <textarea
-                    name="tags"
-                    placeholder="タグを入力  #生活 #人生"
-                    className="textarea textarea-bordered w-full my-4 placeholer-slate-500"
-                    value={tags}
-                    onChange={(e) => handleTagsChange(e.target.value)}
-                />
-                {suggestedTags.length > 0 && (
-                    <div className="absolute z-10 w-full bg-base-100 shadow-lg rounded-md mt-1">
-                        {suggestedTags.map((suggestion, index) => (
-                            <div
-                                key={index}
-                                className="p-2 hover:bg-base-200 cursor-pointer"
-                                onClick={() => handleTagSuggestionClick(suggestion)}
-                            >
-                                {suggestion}
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
+            <TagInput
+                tags={tags}
+                onTagsChange={handleTagsChange}
+                tagCounts={tagCounts}
+            />
+            
             <div className="my-4">
-                <button className="btn btn-primary w-full" type="submit" onClick={(e) => handleSubmit(e)}>保存</button>
+                <button className="btn btn-primary w-full" type="submit">保存</button>
             </div>
             <Modal isOpen={isSuccessModalOpen} onClose={() => setIsSuccessModalOpen(false)} title="成功" showCloseButton={false}>
                 <p>記事を保存しました。リダイレクトします。</p>
@@ -333,10 +345,8 @@ export default function EditNew() {
 
 export async function action({ request, context }: ActionFunctionArgs) {
     const formData = await request.formData();
-    console.log("AAAA");
     const actionType = formData.get("actionType") as string;
     if (actionType === "createPost"){
-        console.log("create")
         const markdownContent = formData.get("markdownContent") as string;
         const postTitle = formData.get("postTitle") as string;
         const summary = formData.get("summary") as string;
