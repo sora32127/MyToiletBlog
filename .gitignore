@@ -4,3 +4,6 @@ node_modules
 /build
 .env
 .dev.vars
+prisma/migrations
+prisma/dev.db
+migrations
