@@ -31,6 +31,8 @@
     "rehype-highlight": "^7.0.0",
     "rehype-stringify": "^10.0.0",
     "remark-gfm": "^4.0.0",
+    "remix-auth": "^3.7.0",
+    "remix-auth-google": "^2.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
