@@ -52,7 +52,7 @@ export default function EditNew() {
     const [markdownContent, setMarkdownContent] = useState(post?.postContentMD ?? "");
     const [postTitle, setPostTitle] = useState(post?.postTitle ?? "");
     const [summary, setSummary] = useState(post?.postSummary ?? "");
-    const [tags, setTags] = useState(tagNames.map(tag => tag && tag.tagName).join(" ") ?? "");
+    const [tags, setTags] = useState(tagNames.map(tag => tag && `#${tag.tagName}`).join(" ") ?? "");
     const [isPublic, setIsPublic] = useState(post?.isPublic === 1);
     const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
 
@@ -352,6 +352,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         const postTitle = formData.get("postTitle") as string;
         const summary = formData.get("summary") as string;
         const tags = formData.get("tags") as string;
+        console.log(tags);
         const isPublic = formData.get("isPublic") as string;
         console.log(postTitle, markdownContent);
         if (!postTitle || !markdownContent) {
