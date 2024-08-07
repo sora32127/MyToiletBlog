@@ -129,6 +129,7 @@ export default function EditNew() {
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
     const [isDangerModalOpen, setIsDangerModalOpen] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const navigate = useNavigate();
 
@@ -155,6 +156,7 @@ export default function EditNew() {
             return () => clearTimeout(timer);
         } else if (actionData?.status === 400) {
             setIsErrorModalOpen(true);
+            setErrorMessage(actionData.message);
         }
     }, [actionData, navigate]);
 
@@ -323,6 +325,7 @@ export default function EditNew() {
             </Modal>
             <Modal isOpen={isErrorModalOpen} onClose={() => setIsErrorModalOpen(false)} title="エラー" showCloseButton={false}>
                 <p>記事の保存に失敗しました</p>
+                <p>{errorMessage}</p>
             </Modal>
         </Form>
     );
@@ -345,11 +348,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
         const postId = formData.get("postId") as string;
         const post = await createPost(postTitle, markdownContent, tags, isPublic, summary, Number(postId), context);
-        if (!post) {
-            return json({ error: "Failed to create post", status: 500 });
+        if (post && post.status !== 200) {
+            return json({ message: post.message, status: post.status });
+        } else if (!post){
+            return json({ message: "Failed to create post", status: 500 });
+        } else {
+            const newPostUrl = `/posts/${post.post.postId}`;
+            return json({ message: "Created", newPostUrl, status: 200 });
         }
-        const newPostUrl = `/posts/${post.postId}`;
-        return json({ message: "Created", newPostUrl, status: 200 });
     } else if (actionType === "uploadMedia"){
         const file = formData.get("file") as File;
         const fileName = await generateFileName();

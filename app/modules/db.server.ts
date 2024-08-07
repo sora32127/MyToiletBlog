@@ -50,9 +50,32 @@ if (import.meta.env.MODE !== "production" && global.__prisma) {
     prisma = global.__prisma;
 }
 
+function validatePostContent(postTitle: string, tagsArray: string[]){
+    if (postTitle.length > 40){
+        return {
+            status: 400,
+            message: "タイトルの文字数が40文字を超えています"
+        };
+    }
+    if (tagsArray.length > 5){
+        return {
+            status: 400,
+            message: "タグの数が5つを超えています"
+        };
+    }
+    return {
+        status: 200,
+        message: "Valid post content"
+    };
+}
 
 async function createPost(postTitle: string, postContentMD:string, tags: string, isPublic: String, summary: string, postId:number | null = null, serverContext: AppLoadContext){
-    console.log(tags);
+    const tagsArray = tags.split(" ").map((tagName) => tagName.replace("#", "")).filter((tagName) => tagName !== "");
+    const isValidPostContent = validatePostContent(postTitle, tagsArray);
+    if (isValidPostContent.status !== 200){
+        return isValidPostContent;
+    }
+
     const db = getDBClient(serverContext);
     const postUnixTimeGMT = await getNowUnixTimeGMT();
     const isPublicInt = isPublic === "true" ? 1 : 0;
@@ -83,7 +106,6 @@ async function createPost(postTitle: string, postContentMD:string, tags: string,
         },
     });
     // tagNameに\sが含まれている場合は、\sを除去してからタグを作成する
-    const tagsArray = tags.split(" ").map((tagName) => tagName.replace("#", "")).filter((tagName) => tagName !== "");
     tagsArray.forEach(async (tagName) => {
         let tagId = await db.dimTags.findUnique({
             select: {
@@ -118,9 +140,12 @@ async function createPost(postTitle: string, postContentMD:string, tags: string,
             postOGImageURL: `https://contradictiononline.org/images/${ogImageKey}`
         }
     })
-    return post;
-}
-}
+    return {
+        post,
+        status: 200,
+        message: "Created"
+    };
+}}
 
 async function getPostByPostId(postId: number, serverContext: AppLoadContext, isEditPage: boolean = false){
     const db = getDBClient(serverContext);
