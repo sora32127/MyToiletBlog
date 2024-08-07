@@ -5,6 +5,27 @@ export default function About() {
     return (
       <div>
       <H1>About</H1>
+      <H2>Contact</H2>
+      <ul>
+        <li>
+          <a href="https://www.twitter.com/messages/compose?recipient_id=1249916069344473088">X</a>
+        </li>
+        <li>
+          <a href="mailto:contradiction29@gmail.com">Mail</a>
+        </li>
+      </ul>
+      <H2>利用技術</H2>
+      <ul>
+        <li>Remix</li>
+        <li>TailwindCSS</li>
+        <li>daisyUI</li>
+        <li>TypeScript</li>
+        <li>Cloudflare Workers</li>
+        <li>Cloudflare</li>
+        <li>Cloudflare R2</li>
+        <li>Cloudflare D1</li>
+        <li>Prisma</li>
+      </ul>
       </div>
     )
 } 
