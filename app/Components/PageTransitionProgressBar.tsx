@@ -31,11 +31,27 @@ function PageTransitionProgressBar() {
     awaitAnimationCompletion();
   }, [isTransitioning]);
 
+  function getProgress() {
+    if (navigation.state === 'idle') {
+      return 0;
+    }
+    if (navigation.state === 'submitting') {
+      return 25;
+    }
+    if (navigation.state === 'loading') {
+      return 75;
+    }
+    return 100;
+  }
+
   return (
     <div
       role="progressbar"
       aria-hidden={!isTransitioning}
       aria-valuetext={isTransitioning ? 'Loading' : undefined}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={getProgress()}
       className="fixed inset-x-0 top-0 left-0 z-50 h-2 animate-pulse"
     >
       <div
