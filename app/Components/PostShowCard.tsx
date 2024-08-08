@@ -1,12 +1,11 @@
-import { PostShowCardSchema } from "~/modules/db.server";
-import { z } from "zod";
+import type { PostShowCardSchemaType } from "~/modules/db.server";
 import { H3 } from "./Headings";
 import { NavLink } from "@remix-run/react";
 import TagShowCard from "./TagShowCard";
 import { FaCalendarAlt, FaChevronRight } from "react-icons/fa";
 import DateTime from "./DateTime";
 
-export function PostShowCard({ post }: { post: z.infer<typeof PostShowCardSchema> }) {
+export function PostShowCard({ post }: { post: PostShowCardSchemaType }) {
     if (!post) {
         return null;
     }
