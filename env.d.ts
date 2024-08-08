@@ -14,6 +14,7 @@ export interface Env {
   GOOGLE_CLIENT_SECRET: string;
   GOOGLE_CALLBACK_URL: string;
   ADMIN_USER_ID: string;
+  OGIMAGE_GENERATION_ENDPOINT: string;
 }
 
 interface ImportMeta {

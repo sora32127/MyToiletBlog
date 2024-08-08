@@ -1,8 +1,5 @@
-import { AppLoadContext } from "@remix-run/cloudflare";
-
-interface Env {
-    R2: R2Bucket;
-}
+import type { AppLoadContext } from "@remix-run/cloudflare";
+import type { Env } from "env.d.ts";
 
 async function getStorageClient(serverContext: AppLoadContext){
     const env = serverContext.cloudflare.env as Env;
@@ -40,7 +37,7 @@ async function generateFileName(){
 }
 
 async function createOGImage(postId: number, tags: string[], postTitle: string, serverContext: AppLoadContext){ 
-    const env = serverContext.cloudflare.env as any;
+    const env = serverContext.cloudflare.env as Env;
     const OGIMAGE_GENERATION_ENDPOINT = env.OGIMAGE_GENERATION_ENDPOINT;
     try { 
         console.log("OGIMAGE_GENERATION_ENDPOINT", OGIMAGE_GENERATION_ENDPOINT);
@@ -59,9 +56,8 @@ async function createOGImage(postId: number, tags: string[], postTitle: string, 
         const data = await res.json() as { status: string, message: string , key: string};
         if (data.status === "success"){
             return data.key;
-        } else {
-            throw new Error(data.message);
         }
+        throw new Error(data.message);
     } catch (error) {
         console.error(error);
         throw new Error("Failed to create OG image");
