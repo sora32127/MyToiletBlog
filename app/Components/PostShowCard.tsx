@@ -4,13 +4,12 @@ import { H3 } from "./Headings";
 import { NavLink } from "@remix-run/react";
 import TagShowCard from "./TagShowCard";
 import { FaCalendarAlt, FaChevronRight } from "react-icons/fa";
+import DateTime from "./DateTime";
 
 export function PostShowCard({ post }: { post: z.infer<typeof PostShowCardSchema> }) {
     if (!post) {
         return null;
     }
-    
-    const postDate = new Date(post.postUnixTimeGMT * 1000);
     const postUrl = `/posts/${post.postId}`;
 
     return (
@@ -22,7 +21,7 @@ export function PostShowCard({ post }: { post: z.infer<typeof PostShowCardSchema
             </div>
             <div className="flex items-center text-sm mb-2">
                 <FaCalendarAlt className="mr-2" />
-                {postDate.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}
+                <DateTime unixtime={post.postUnixTimeGMT} />
             </div>
             <NavLink to={postUrl} className="group">
                 <H3>
