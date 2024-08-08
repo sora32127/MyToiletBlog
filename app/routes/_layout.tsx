@@ -58,7 +58,7 @@ export default function Layout() {
             <div className="content m-4 animate-fade-in md:w-3/4 md:mx-auto md:my-8 font-sans flex flex-col min-h-screen">
                 <Outlet />
             </div>
-                <footer className="footer footer-center bg-base-300 p-4 sticky bottom-0">
+                <footer className="footer footer-center bg-base-300 p-4 bottom-0">
                 <aside>
                     <p>Copyright © {new Date().getFullYear()} - All right reserved</p>
                 </aside>
