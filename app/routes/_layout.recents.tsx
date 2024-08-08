@@ -1,8 +1,10 @@
-import { json, LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { H1, H2 } from "~/Components/Headings";
 import { PostShowCard } from "~/Components/PostShowCard";
 import { getPostsByTagName, getRecentPosts } from "~/modules/db.server";
+
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
     const url = new URL(request.url);

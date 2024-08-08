@@ -1,5 +1,6 @@
-import { json, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { getFileFromStorageByKey } from "~/modules/storage.server";
+import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
     const key = params.key;

@@ -50,7 +50,11 @@ export default function Post() {
                     ))}
                 </div>
             </div>
-            <div dangerouslySetInnerHTML={{ __html: postHTML }} className="markdownHTML" />
+            
+            <div
+                // biome-ignore lint:
+                dangerouslySetInnerHTML={{ __html: postHTML }} className="markdownHTML"
+            />
 
             <ShareButtons
                 currentURL={`https://contradictiononline.org/posts/${post.postId}`} 

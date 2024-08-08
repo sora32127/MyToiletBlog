@@ -26,7 +26,7 @@ export default function Layout() {
                         <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                             <FiChevronDown />
                         </div>
-                        <ul tabIndex={0} className="bg-base-100 rounded-box mt-3 w-52 shadow menu menu-sm dropdown-content z-[1]">
+                        <ul className="bg-base-100 rounded-box mt-3 w-52 shadow menu menu-sm dropdown-content z-[1]">
                             {menuItems.map((item) => (
                                 <li key={item.name}>
                                     <NavLink to={item.to} className="hover:bg-base-200">{item.name}</NavLink>
