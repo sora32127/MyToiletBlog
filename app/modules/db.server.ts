@@ -1,9 +1,27 @@
 import { PrismaD1 } from "@prisma/adapter-d1";
 import { PrismaClient } from "@prisma/client";
-import { AppLoadContext } from "@remix-run/server-runtime";
+import type { AppLoadContext } from "@remix-run/server-runtime";
 import { getNowUnixTimeGMT } from "./util.server";
 import { z } from "zod";
 import { createOGImage } from "./storage.server";
+
+export type TagSchemaType = z.infer<typeof tagSchema>
+const tagSchema = z.object({
+    tagName: z.string(),
+    tagId: z.number(),
+});
+
+export type PostShowCardSchemaType = z.infer<typeof PostShowCardSchema>
+const PostShowCardSchema = z.optional(z.object({
+    postId: z.number(),
+    postTitle: z.string(),
+    postContentMD: z.string(),
+    postUnixTimeGMT: z.number(),
+    postSummary: z.string(),
+    postOGImageURL: z.string(),
+    isPublic: z.number(),
+    tagsNames: z.array(tagSchema),
+}))
 
 interface Env {
     DB: D1Database;
@@ -21,12 +39,10 @@ function createPrismaClient(env: Env): PrismaClient {
         const adapter = new PrismaD1(env.DB);
         return new PrismaClient({ adapter });
     }
-    else {
-        // 開発環境の場合はローカルのsqliteファイルを使用する。ローカル開発環境のファイルパスは./prisma/schema.prismaに記載されているので、通常のPrismaClientをInstantiateするとその設定が有効になる。
-        // Cloudflareのwranglerでは、ローカル開発時にwrangler用のSQLiteをエミュレートするが、その設定ではインタラクティブシェルが使えないので、開発体験があまり良くない
-        // そのため、開発環境でPrismaClientをInstantiateするときには、ローカルのsqliteファイルを使用する
-        return new PrismaClient();
-    }
+    // 開発環境の場合はローカルのsqliteファイルを使用する。ローカル開発環境のファイルパスは./prisma/schema.prismaに記載されているので、通常のPrismaClientをInstantiateするとその設定が有効になる。
+    // Cloudflareのwranglerでは、ローカル開発時にwrangler用のSQLiteをエミュレートするが、その設定ではインタラクティブシェルが使えないので、開発体験があまり良くない
+    // そのため、開発環境でPrismaClientをInstantiateするときには、ローカルのsqliteファイルを使用する
+    return new PrismaClient();
 }
 
 function getDBClient(serverContext: AppLoadContext): PrismaClient {
@@ -69,7 +85,15 @@ function validatePostContent(postTitle: string, tagsArray: string[]){
     };
 }
 
-async function createPost(postTitle: string, postContentMD:string, tags: string, isPublic: String, summary: string, postId:number | null = null, serverContext: AppLoadContext){
+async function createPost(
+    postTitle: string,
+    postContentMD:string,
+    tags: string,
+    isPublic: string,
+    summary: string,
+    serverContext: AppLoadContext,
+    postId:number | null = null
+){
     const tagsArray = tags.split(" ").map((tagName) => tagName.replace("#", "")).filter((tagName) => tagName !== "");
     const isValidPostContent = validatePostContent(postTitle, tagsArray);
     if (isValidPostContent.status !== 200){
@@ -106,7 +130,7 @@ async function createPost(postTitle: string, postContentMD:string, tags: string,
         },
     });
     // tagNameに\sが含まれている場合は、\sを除去してからタグを作成する
-    tagsArray.forEach(async (tagName) => {
+    for (const tagName of tagsArray){
         let tagId = await db.dimTags.findUnique({
             select: {
                 tagId: true
@@ -129,9 +153,8 @@ async function createPost(postTitle: string, postContentMD:string, tags: string,
                 tagId: tagId.tagId
             }
         })
-    })
+    }
     const ogImageKey = await createOGImage(post.postId, tagsArray, postTitle, serverContext);
-    console.log("OGImagekey", ogImageKey)
     await db.dimPosts.update({
         where: {
             postId: post.postId
@@ -147,7 +170,7 @@ async function createPost(postTitle: string, postContentMD:string, tags: string,
     };
 }}
 
-async function getPostByPostId(postId: number, serverContext: AppLoadContext, isEditPage: boolean = false){
+async function getPostByPostId(postId: number, serverContext: AppLoadContext, isEditPage = false){
     const db = getDBClient(serverContext);
     if (isEditPage){
         const post = await db.dimPosts.findUnique({
@@ -157,23 +180,16 @@ async function getPostByPostId(postId: number, serverContext: AppLoadContext, is
         })
         return post;
     }
-    else {
-        const post = await db.dimPosts.findUnique({
-            where: {
-                postId,
+    const post = await db.dimPosts.findUnique({
+        where: {
+            postId,
                 isPublic: 1
             },
         })
-        return post;
-    }
+    return post;
 }
 
-const tagSchema = z.object({
-    tagName: z.string(),
-    tagId: z.number(),
-});
 
-export type TagSchemaType = z.infer<typeof tagSchema>
 
 async function getTagsByPostId(postId: number, serverContext: AppLoadContext): Promise<z.infer<typeof tagSchema>[]> {
     const db = getDBClient(serverContext);
@@ -205,17 +221,7 @@ async function getTagsByPostId(postId: number, serverContext: AppLoadContext): P
     return tagNames;
 }
 
-export type PostShowCardSchemaType = z.infer<typeof PostShowCardSchema>
-const PostShowCardSchema = z.optional(z.object({
-    postId: z.number(),
-    postTitle: z.string(),
-    postContentMD: z.string(),
-    postUnixTimeGMT: z.number(),
-    postSummary: z.string(),
-    postOGImageURL: z.string(),
-    isPublic: z.number(),
-    tagsNames: z.array(tagSchema),
-}))
+
 
 async function getRecentPosts(serverContext: AppLoadContext): Promise<z.infer<typeof PostShowCardSchema>[]> {
     const db = getDBClient(serverContext);
