@@ -1,5 +1,5 @@
 import { H1, H2 } from "~/Components/Headings";
-import { MetaFunction, NavLink } from "@remix-run/react";
+import type { MetaFunction } from "@remix-run/react";
 
 export default function About() {
     return (

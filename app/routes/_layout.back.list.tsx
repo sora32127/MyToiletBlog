@@ -1,12 +1,13 @@
-import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { useLoaderData, useSubmit } from "@remix-run/react";
 import { useState } from "react";
 import { Modal } from "~/Components/Modal";
 import { PostEditCard } from "~/Components/PostEditCard";
-import { deletePosts, getPostByPostId, getPostsInBackList } from "~/modules/db.server";
+import { deletePosts, getPostsInBackList } from "~/modules/db.server";
+
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/cloudflare";
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
-    const url = new URL(request.url);
     const posts = await getPostsInBackList(context);
     return json({ posts });
 }
@@ -39,7 +40,7 @@ export default function BackList() {
     return (
         <div>
             <h1>BackList</h1>
-            <button className="btn btn-primary" onClick={() => setIsPostDeleteModalOpen(true)}>選択した投稿を削除する({selectedPostIds.length}件)</button>
+            <button className="btn btn-primary" onClick={() => setIsPostDeleteModalOpen(true)} type="button">選択した投稿を削除する({selectedPostIds.length}件)</button>
             <ul>
                 {posts.map((post) => (
                     <PostEditCard key={post.postId} post={post} handlePostSelect={handlePostSelect} />
@@ -52,8 +53,8 @@ export default function BackList() {
                 showCloseButton={false}
             >
                 <p>削除しますか？</p>
-                <button className="btn btn-primary" onClick={() => setIsPostDeleteModalOpen(false)}>いいえ</button>
-                <button className="btn btn-warning" onClick={() =>{ setIsPostDeleteModalOpen(false); handlePostDelete(); }}>はい</button>
+                <button className="btn btn-primary" onClick={() => setIsPostDeleteModalOpen(false)} type="button">いいえ</button>
+                <button className="btn btn-warning" onClick={() =>{ setIsPostDeleteModalOpen(false); handlePostDelete(); }} type="button">はい</button>
             </Modal>
         </div>
     );
@@ -62,7 +63,7 @@ export default function BackList() {
 export async function action({ request, context }: ActionFunctionArgs) {
     const formData = await request.formData();
     const postIds = formData.get("postId") as string;
-    const postIdArray = postIds.split(",").map((postId) => parseInt(postId));
+    const postIdArray = postIds.split(",").map((postId) => Number.parseInt(postId));
     await deletePosts(postIdArray, context);
     return json({ status: 200 });
 }
