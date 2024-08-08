@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import  { useCallback, useState, useRef, useEffect } from 'react';
 
 interface TagInputProps {
     tags: string;
@@ -10,7 +10,8 @@ export function TagInput({ tags, onTagsChange, tagCounts }: TagInputProps) {
     const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
     const [focusedSuggestionIndex, setFocusedSuggestionIndex] = useState(-1);
     const inputRef = useRef<HTMLTextAreaElement>(null);
-    const suggestionsRef = useRef<(HTMLDivElement | null)[]>([]);
+    const suggestionsRef = useRef<(HTMLButtonElement | null)[]>([]);
+
 
     const generateTagSuggestions = useCallback((input: string) => {
         if (!input.trim()) {
@@ -43,7 +44,7 @@ export function TagInput({ tags, onTagsChange, tagCounts }: TagInputProps) {
         const tagArray = tags.split(' ').filter(tag => tag !== '');
         tagArray.pop();
         const newTag = suggestion.split('（')[0];
-        const newTags = [...tagArray, `#${newTag}`].join(' ') + ' ';
+        const newTags = `${[...tagArray, `#${newTag}`].join(' ')} `;
         onTagsChange(newTags);
         setSuggestedTags([]);
         setFocusedSuggestionIndex(-1);
@@ -57,8 +58,11 @@ export function TagInput({ tags, onTagsChange, tagCounts }: TagInputProps) {
     }, [focusedSuggestionIndex, suggestedTags.length]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        console.log(e.key);
+
         if (e.key === 'ArrowDown' && suggestedTags.length > 0) {
             e.preventDefault();
+
             setFocusedSuggestionIndex((prev) => (prev + 1) % suggestedTags.length);
         } else if (e.key === 'ArrowUp' && suggestedTags.length > 0) {
             e.preventDefault();
@@ -87,10 +91,11 @@ export function TagInput({ tags, onTagsChange, tagCounts }: TagInputProps) {
             {suggestedTags.length > 0 && (
                 <div className="absolute z-10 w-full bg-base-100 shadow-lg rounded-md mt-1">
                     {suggestedTags.map((suggestion, index) => (
-                        <div
-                            key={index}
-                            ref={(el) => (suggestionsRef.current[index] = el)}
+                        <button
+                            key={suggestion}
+                            ref={el => { suggestionsRef.current[index] = el }}
                             tabIndex={0}
+                            type="button"
                             className={`w-full text-left p-2 hover:bg-base-200 focus:bg-base-300 outline-none ${
                                 index === focusedSuggestionIndex ? 'bg-base-300' : ''
                             }`}
@@ -103,7 +108,7 @@ export function TagInput({ tags, onTagsChange, tagCounts }: TagInputProps) {
                             }}
                         >
                             {suggestion}
-                        </div>
+                        </button>
                     ))}
                 </div>
             )}
