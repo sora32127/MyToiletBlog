@@ -13,11 +13,11 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     if(!response){
         return json({ message: "File not found", object: {}, status: 404 });
     }
-    console.log(response);
 
-    const headers: HeadersInit = new Headers();
+    const headers = new Headers();
+    // @ts-ignore
     response.writeHttpMetadata(headers);
     headers.set("etag", response.httpEtag);
-
+    // @ts-ignore
     return new Response(response.body, { headers });
 }
