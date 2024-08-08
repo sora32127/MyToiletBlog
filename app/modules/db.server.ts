@@ -121,6 +121,30 @@ async function createPost(
                 isPublic: isPublicInt,
             }
         })
+        for (const tagName of tagsArray){
+            let tagId = await db.dimTags.findUnique({
+                select: {
+                    tagId: true
+                },
+                where : {
+                    tagName
+                }
+            })
+            if (!tagId){
+                const newTag = await db.dimTags.create({
+                    data: {
+                        tagName
+                    }
+                })
+                tagId = {"tagId": newTag.tagId};
+            }
+            await db.relPostTags.create({
+                data: {
+                    postId: post.postId,
+                    tagId: tagId.tagId
+                }
+            })
+        }
     }
     else {
         const post = await db.dimPosts.create({
