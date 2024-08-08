@@ -159,17 +159,21 @@ export default function EditNew() {
     }, []);
 
     useEffect(() => {
-        if (actionData?.status === 200) {
-            clearLocalStorage();
-            setIsSuccessModalOpen(true);
-            const timer = setTimeout(() => {
-                navigate(actionData.newPostUrl);
-                
-            }, 1000);
-            return () => clearTimeout(timer);
+        if (actionData) {
+            console.log(actionData);
+            if (actionData.status === 200) {
+                clearLocalStorage();
+                setIsSuccessModalOpen(true);
+                const timer = setTimeout(() => {
+                    navigate(actionData.newPostUrl);
+                }, 1000);
+                return () => clearTimeout(timer);
+            // biome-ignore lint/style/noUselessElse: <explanation>
+            } else if (actionData.status !== 201) {      
+                setIsErrorModalOpen(true);
+                setErrorMessage(actionData.message ?? "Unknown error");
+            }
         }
-        setIsErrorModalOpen(true);
-        setErrorMessage(actionData?.message ?? "Unknown error");
     }, [actionData, navigate, clearLocalStorage]);
 
     const uploadedFileKey = actionData?.uploadedFileKey ?? "";
@@ -338,8 +342,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 newPostUrl: ""
             });
         }
-
-        const newPostUrl = post ? `/posts/${post.postId}` : "";
+        // isPublic = 1かつpostがある場合は、postのURLを返す
+        // isPublic = 0かつpostがある場合は、back/listにリダイレクトする
+        // postがない場合はエラーメッセージを返す
+        const newPostUrl = isPublic === "1" && post ? `/posts/${post.postId}` : "/back/list";
         return json({
             message: "SuccessFully Created",
             newPostUrl,
