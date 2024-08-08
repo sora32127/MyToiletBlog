@@ -18,11 +18,9 @@ export default function Recents() {
         <div>
             <H1>Recent Posts</H1>
             {tagName && <H2>タグ: {tagName}</H2>}
-            <ul>
-                {posts.map((post) => (
-                    <PostShowCard post={post} key={post.postId} />
-                ))}
-            </ul>
+            {posts.map((post) => (
+                <PostShowCard post={post} key={post.postId} />
+            ))}
         </div>
     );
 }
