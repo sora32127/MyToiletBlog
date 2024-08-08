@@ -29,19 +29,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <ScrollRestoration />
         <Scripts />
         <script src="https://b.st-hatena.com/js/bookmark_button.js"/>
-        <script dangerouslySetInnerHTML={{__html: `
-          (function() {
-            const savedTheme = localStorage.getItem("theme");
-            if (savedTheme) {
-              document.documentElement.setAttribute("data-theme", savedTheme);
-            } else {
-              const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-              const defaultTheme = prefersDark ? "sunset" : "nord";
-              document.documentElement.setAttribute("data-theme", defaultTheme);
-              localStorage.setItem("theme", defaultTheme);
-            }
-          })();
-        `}} />
       </body>
     </html>
   );

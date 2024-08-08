@@ -1,36 +1,17 @@
 import { NavLink, Outlet } from "@remix-run/react";
-import { useEffect, useState } from "react";
 import { FiChevronDown } from "react-icons/fi";
-import { CiDark, CiLight } from "react-icons/ci";
 
 
 export default function Layout() {
-    const [theme, setTheme] = useState("");
-    useEffect(() => {
-        const savedTheme = localStorage.getItem("theme") || "sunset";
-        setTheme(savedTheme);
-        document.documentElement.setAttribute("data-theme", savedTheme);
-    }, []);
-
     const menuItems = [
         {"name": "About", "to": "/about"},
         {"name": "Recent", "to": "/recents"},
     ]
 
-    const handleThemeChange = () => {
-        const newTheme = theme === "sunset" ? "nord" : "sunset";
-        setTheme(newTheme);
-        localStorage.setItem("theme", newTheme);
-        document.documentElement.setAttribute("data-theme", newTheme);
-    }
-
     return (
-        <div>
+        <div data-theme="light">
             <div className="navbar bg-base-100">
                 <div className="navbar-start">
-                    <button onClick={handleThemeChange} className="btn btn-ghost btn-circle text-xl hover:bg-base-200">
-                        {theme === "dark" ? <CiDark /> : <CiLight />}
-                    </button>
                 </div>
                 <div className="navbar-center">
                     <NavLink to="/" className="btn btn-ghost text-xl hover:bg-base-200 font-serif">現実モデリング</NavLink>
