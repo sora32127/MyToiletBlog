@@ -97,7 +97,11 @@ async function createPost(
     const tagsArray = tags.split(" ").map((tagName) => tagName.replace("#", "")).filter((tagName) => tagName !== "");
     const isValidPostContent = validatePostContent(postTitle, tagsArray);
     if (isValidPostContent.status !== 200){
-        return isValidPostContent;
+        return {
+            status: isValidPostContent.status,
+            message: isValidPostContent.message,
+            postId: null
+        };
     }
 
     const db = getDBClient(serverContext);
@@ -120,8 +124,8 @@ async function createPost(
     }
     else {
         const post = await db.dimPosts.create({
-            data: {
-                postTitle,
+        data: {
+            postTitle,
             postContentMD,
             postUnixTimeGMT,
             postSummary: summary,
@@ -164,9 +168,9 @@ async function createPost(
         }
     })
     return {
-        post,
         status: 200,
-        message: "Created"
+        message: "SuccessFully Created",
+        postId: post.postId
     };
 }}
 

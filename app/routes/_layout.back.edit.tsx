@@ -1,13 +1,14 @@
-import { ActionFunctionArgs, json, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 import { Form, useActionData, useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { createPost, getPostByPostId, getTagCounts, getTagsByPostId } from "~/modules/db.server";
 import { generateFileName, putFileToStorage } from "~/modules/storage.server";
-import { IconType } from 'react-icons';
 import { FaHeading, FaBold, FaItalic, FaLink, FaListUl, FaListOl, FaStrikethrough, FaImage, } from 'react-icons/fa';
 import { RenderMarkdownIntoHTML } from "~/Components/RenderMarkdownIntoHTML";
 import { Modal } from "~/Components/Modal";
 import { TagInput } from "~/Components/TagInput";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/cloudflare";
+import type { IconType } from "react-icons";
 
 interface ToolbarItem {
   label: string;
@@ -64,20 +65,18 @@ export default function EditNew() {
         const savedMarkdownContent = localStorage.getItem('markdownContent');
         // postIdに値がある場合＝既存の記事を編集する場合＝stateで初期化した値をそのまま使用する
         // postIdに値がない場合＝新規投稿する場合＝localStorageの値を使用する
-        if (savedMarkdownContent && !postId) setMarkdownContent(savedMarkdownContent);
-
-        const savedPostTitle = localStorage.getItem('postTitle');
-        if (savedPostTitle && !postId) setPostTitle(savedPostTitle);
-
-        const savedSummary = localStorage.getItem('summary');
-        if (savedSummary && !postId) setSummary(savedSummary);
-
-        const savedTags = localStorage.getItem('tags');
-        if (savedTags && !postId) setTags(savedTags);
-
-        const savedIsPublic = localStorage.getItem('isPublic');
-        if (savedIsPublic && !postId) setIsPublic(savedIsPublic === 'true');
-    }, []);
+        if (!postId) {
+            const savedPostTitle = localStorage.getItem('postTitle');
+            const savedSummary = localStorage.getItem('summary');
+            const savedTags = localStorage.getItem('tags');
+            const savedIsPublic = localStorage.getItem('isPublic');
+            setMarkdownContent(savedMarkdownContent ?? "");
+            setPostTitle(savedPostTitle ?? "");
+            setSummary(savedSummary ?? "");
+            setTags(savedTags ?? "");
+            setIsPublic(savedIsPublic === 'true');  
+        }
+    }, [postId]);
 
     const handleMarkdownContentChange = useCallback((value: string) => {
         setMarkdownContent(value);
@@ -107,7 +106,7 @@ export default function EditNew() {
         });
     };
 
-    const insertMarkdown = useCallback((prefix: string, suffix: string = '') => {
+    const insertMarkdown = useCallback((prefix: string, suffix = '') => {
         const textarea = textareaRef.current;
         if (!textarea) return;
 
@@ -146,7 +145,7 @@ export default function EditNew() {
 
     const navigate = useNavigate();
 
-    const clearLocalStorage = () => {
+    const clearLocalStorage = useCallback(() => {
         localStorage.removeItem('markdownContent');
         localStorage.removeItem('postTitle');
         localStorage.removeItem('summary');
@@ -157,26 +156,26 @@ export default function EditNew() {
         setSummary("");
         setTags("");
         setIsPublic(false);
-    }
+    }, []);
 
     useEffect(() => {
         if (actionData?.status === 200) {
+            clearLocalStorage();
             setIsSuccessModalOpen(true);
             const timer = setTimeout(() => {
                 navigate(actionData.newPostUrl);
-                clearLocalStorage();
+                
             }, 1000);
             return () => clearTimeout(timer);
-        } else if (actionData?.status === 400) {
-            setIsErrorModalOpen(true);
-            setErrorMessage(actionData.message);
         }
-    }, [actionData, navigate]);
+        setIsErrorModalOpen(true);
+        setErrorMessage(actionData?.message ?? "Unknown error");
+    }, [actionData, navigate, clearLocalStorage]);
 
     const uploadedFileKey = actionData?.uploadedFileKey ?? "";
     useEffect(() => {
         if (uploadedFileKey) {
-          setMarkdownContent((prevContent) => prevContent + `\n![Uploaded Image](${uploadedFileKey})`);
+          setMarkdownContent((prevContent) => `${prevContent}\n![Uploaded Image](${uploadedFileKey})`);
         }
     }, [uploadedFileKey]);
 
@@ -191,50 +190,18 @@ export default function EditNew() {
         }
     }, [submit]);
 
-    const generateTagSuggestions = useCallback((input: string) => {
-        if (!input.trim()) {
-            setSuggestedTags([]);
-            return;
-        }
-        const inputTags = input.split(' ').filter(tag => tag.trim() !== '');
-        const lastTag = inputTags[inputTags.length - 1].toLowerCase().replace(/^#/, '');
-        
-        if (!lastTag) {
-            setSuggestedTags([]);
-            return;
-        }
-
-        const suggestions = tagCounts
-            .filter(tag => tag.tagName.toLowerCase().includes(lastTag))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 5)
-            .map(tag => `${tag.tagName}（${tag.count}）`);
-        setSuggestedTags(suggestions);
-    }, [tagCounts]);
-
     const handleTagsChange = useCallback((value: string) => {
         setTags(value);
         localStorage.setItem('tags', value);
-        generateTagSuggestions(value);
-    }, [generateTagSuggestions]);
-
-    const handleTagSuggestionClick = useCallback((suggestion: string) => {
-        setTags(prevTags => {
-            const tagArray = prevTags.split(' ').filter(tag => tag !== '');
-            tagArray.pop(); // 最後の未完成のタグを削除
-            const newTag = suggestion.split('（')[0]; // カウント部分を除去
-            const newTags = [...tagArray, `#${newTag}`].join(' ') + ' ';
-            localStorage.setItem('tags', newTags);
-            return newTags;
-        });
-        setSuggestedTags([]);
     }, []);
 
     return (
         <Form encType="multipart/form-data" onSubmit={(e) => handleSubmit(e)}>
             <button
                 className="btn btn-primary"
-                onClick={() => setIsDangerModalOpen(true)}>
+                onClick={() => setIsDangerModalOpen(true)}
+                type="button"
+            >
                 入力データを削除
             </button>
             <Modal
@@ -249,8 +216,8 @@ export default function EditNew() {
                     onClick={() =>{
                         clearLocalStorage();
                         setIsDangerModalOpen(false);
-                    }}>はい</button>
-                    <button className="btn" onClick={() => setIsDangerModalOpen(false)}>いいえ</button>
+                    }} type="button">はい</button>
+                    <button className="btn" onClick={() => setIsDangerModalOpen(false)} type="button">いいえ</button>
                 </div>
             </Modal>
             <div className="space-y-6 my-6">
@@ -352,26 +319,42 @@ export async function action({ request, context }: ActionFunctionArgs) {
         const postTitle = formData.get("postTitle") as string;
         const summary = formData.get("summary") as string;
         const tags = formData.get("tags") as string;
-        console.log(tags);
         const isPublic = formData.get("isPublic") as string;
-        console.log(postTitle, markdownContent);
         if (!postTitle || !markdownContent) {
-            return json({ error: "Invalid form data",status: 400, uploadedFileKey: "" });
+            return json({ 
+                message: "Invalid form data",
+                status: 400,
+                uploadedFileKey: "",
+                newPostUrl: ""
+            });
         }
         const postId = formData.get("postId") as string;
-        const post = await createPost(postTitle, markdownContent, tags, isPublic, summary, Number(postId), context);
+        const post = await createPost(postTitle, markdownContent, tags, isPublic, summary, context, Number(postId));
         if (post && post.status !== 200) {
-            return json({ message: post.message, status: post.status });
-        } else if (!post){
-            return json({ message: "Failed to create post", status: 500 });
-        } else {
-            const newPostUrl = `/posts/${post.post.postId}`;
-            return json({ message: "Created", newPostUrl, status: 200 });
+            return json({
+                message: post.message,
+                status: post.status,
+                uploadedFileKey: "",
+                newPostUrl: ""
+            });
         }
-    } else if (actionType === "uploadMedia"){
-        const file = formData.get("file") as File;
-        const fileName = await generateFileName();
-        const key = await putFileToStorage(context, fileName, file);
-        return json({ message: "Successfully uploaded", uploadedFileKey: key, status: 201 });
-    }
+
+        const newPostUrl = post ? `/posts/${post.postId}` : "";
+        return json({
+            message: "SuccessFully Created",
+            newPostUrl,
+            status: 200,
+            uploadedFileKey: "",
+            postId: post?.postId
+        });
+    } 
+    const file = formData.get("file") as File;
+    const fileName = await generateFileName();
+    const key = await putFileToStorage(context, fileName, file);
+    return json({
+        message: "Successfully uploaded",
+        uploadedFileKey: key,
+        status: 201,
+        newPostUrl: ""
+    });
 }
