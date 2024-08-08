@@ -5,8 +5,18 @@ import remarkGfm from 'remark-gfm';
 import markdown from 'remark-parse';
 import { visit } from 'unist-util-visit';
 import rehypeHighlight from 'rehype-highlight';
+import type { Node, Parent } from 'unist';
+import type { Element } from 'hast';
 
-export async function renderMarkdown(markdownContent: string) {
+interface ImageNode extends Element {
+    tagName: 'img';
+    properties: {
+        alt?: string;
+        src?: string;
+    };
+}
+
+export async function renderMarkdownIntoHTML(markdownContent: string) {
     const processor = unified()
         .use(markdown)
         .use(remarkGfm)
@@ -14,24 +24,14 @@ export async function renderMarkdown(markdownContent: string) {
         .use(rehypeHighlight, {
             detect: true,
         })
-        .use(() => (tree: any) => {
-            let listItemCounter = 0;
-            visit(tree, 'element', (node, index, parent) => {
-                if ((node as any).tagName === 'li') {
-                    (node as any).properties = {
-                        ...(node as any).properties,
-                        key: `list-item-${listItemCounter++}`,
-                    };
-                }
-            });
-        })
-        .use(() => (tree: any) => {
-            visit(tree, 'element', (node, index, parent) => {
-                if ((node as any).tagName === 'img') {
-                    const alt = (node as any).properties?.alt as string;
-                    const src = (node as any).properties?.src as string;
+        .use(() => (tree: Node) => {
+            visit(tree, 'element', (node: Element, index: number | null, parent: Parent | null) => {
+                if (node.tagName === 'img') {
+                    const imgNode = node as ImageNode;
+                    const alt = imgNode.properties?.alt;
+                    const src = imgNode.properties?.src;
                     if (alt && src) {
-                        const figureNode = {
+                        const figureNode: Element = {
                             type: 'element',
                             tagName: 'figure',
                             properties: {},
@@ -53,12 +53,13 @@ export async function renderMarkdown(markdownContent: string) {
                         if (parent && typeof index === 'number') {
                             parent.children[index] = figureNode;
                         }
-                        return [(visit as any).SKIP];
+                        // @ts-ignore
+                        return [visit.SKIP];
                     }
                 }
             });
         })
         .use(rehypeStringify);
-    const htmlString = await processor.process(markdownContent).then((result) => result.toString());
-    return htmlString;
+    const result = await processor.process(markdownContent);
+    return result.toString();
 }

@@ -6,7 +6,7 @@ import { getPostByPostId, getTagsByPostId } from "~/modules/db.server";
 import TagShowCard from "~/Components/TagShowCard";
 import SummaryShowCard from "~/Components/SummaryShowCard";
 import ShareButtons from "~/Components/ShareButtons";
-import { renderMarkdown } from "~/modules/rendermarkdown.server";
+import { renderMarkdownIntoHTML } from "~/modules/rendermarkdown.server";
 import DateTime from "~/Components/DateTime";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
@@ -22,7 +22,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
         });
     }
     const tags = await getTagsByPostId(Number(postId), context);
-    const postHTML = await renderMarkdown(post.postContentMD.toString())
+    const postHTML = await renderMarkdownIntoHTML(post.postContentMD.toString())
     return json({ post, tags, postHTML });
 }
 
