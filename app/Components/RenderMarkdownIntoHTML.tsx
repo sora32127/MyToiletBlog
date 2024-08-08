@@ -1,5 +1,4 @@
 import { unified } from 'unified';
-import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
 import remarkGfm from 'remark-gfm';
@@ -7,6 +6,16 @@ import markdown from 'remark-parse';
 import { visit } from 'unist-util-visit';
 import { useState, useEffect } from 'react';
 import rehypeHighlight from 'rehype-highlight';
+import type { Node, Parent } from 'unist';
+import type { Element } from 'hast';
+
+interface ImageNode extends Element {
+  tagName: 'img';
+  properties: {
+    alt?: string;
+    src?: string;
+  };
+}
 
 export function RenderMarkdownIntoHTML({ markdownContent }: { markdownContent: string }) {
     const [htmlContent, setHtmlContent] = useState<string>('');
@@ -20,13 +29,14 @@ export function RenderMarkdownIntoHTML({ markdownContent }: { markdownContent: s
                 .use(rehypeHighlight, {
                     detect: true,
                 })
-                .use(() => (tree: any) => {
-                    visit(tree, 'element', (node, index, parent) => {
-                        if ((node as any).tagName === 'img') {
-                            const alt = (node as any).properties?.alt as string;
-                            const src = (node as any).properties?.src as string;
+                .use(() => (tree: Node) => {
+                    visit(tree, 'element', (node: Element, index: number | null, parent: Parent | null) => {
+                        if (node.tagName === 'img') {
+                            const imgNode = node as ImageNode;
+                            const alt = imgNode.properties?.alt;
+                            const src = imgNode.properties?.src;
                             if (alt && src) {
-                                const figureNode = {
+                                const figureNode: Element = {
                                     type: 'element',
                                     tagName: 'figure',
                                     properties: {},
@@ -48,7 +58,8 @@ export function RenderMarkdownIntoHTML({ markdownContent }: { markdownContent: s
                                 if (parent && typeof index === 'number') {
                                     parent.children[index] = figureNode;
                                 }
-                                return [(visit as any).SKIP];
+                                // @ts-ignore
+                                return [visit.SKIP];
                             }
                         }
                     });
@@ -60,5 +71,6 @@ export function RenderMarkdownIntoHTML({ markdownContent }: { markdownContent: s
         renderMarkdown();
     }, [markdownContent]);
 
+    // biome-ignore lint:
     return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
 }
