@@ -28,7 +28,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
-        <script src="https://b.st-hatena.com/js/bookmark_button.js"/>
       </body>
     </html>
   );
@@ -41,14 +40,6 @@ export function ErrorBoundary(){
       <div className="flex flex-col items-center justify-center h-screen">
         <H1>404 Page Not Found</H1>
         <p>お探しのページは見つかりませんでした。</p>
-        <NavLink to="/" className="btn btn-primary">トップページに戻る</NavLink>
-      </div>
-    )
-  } else {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen">
-        <H1>500 Internal Server Error</H1>
-        <pre className="bg-error p-4 mb-8 overflow-auto">{error instanceof Error ? error.stack : JSON.stringify(error)}</pre>
         <NavLink to="/" className="btn btn-primary">トップページに戻る</NavLink>
       </div>
     )
