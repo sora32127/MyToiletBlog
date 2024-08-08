@@ -1,11 +1,12 @@
 import { Authenticator } from "remix-auth";
 import { GoogleStrategy } from "remix-auth-google";
-import { AppLoadContext, createCookieSessionStorage } from "@remix-run/cloudflare";
-
+import { createCookieSessionStorage } from "@remix-run/cloudflare";
+import type { AppLoadContext } from "@remix-run/cloudflare";
+import type { Env } from "env.d.ts";
 
 const getEnvironMentValiables = (serverContext: AppLoadContext) => {
 	// @ts-ignore
-	const env = serverContext.cloudflare.env;
+	const env = serverContext.cloudflare.env as Env;
 	return {
 		sessionSecret: env.SESSION_SECRET,
 		clientID: env.GOOGLE_CLIENT_ID,
@@ -38,7 +39,7 @@ export async function getAuthenticator(serverContext: AppLoadContext){
 		async ({ profile }) => {
 			console.log("profile in auth.server.ts", profile);
 			const userId = profile.id;
-			return userId == adminUserId;
+			return userId === adminUserId;
 		}
 	);
 	

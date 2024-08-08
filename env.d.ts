@@ -1,17 +1,14 @@
-import { R2Bucket } from "@cloudflare/workers-types/experimental";
+import type { R2Bucket } from "@cloudflare/workers-types/experimental";
+import type { D1Database } from "@cloudflare/workers-types/experimental";
 
 declare module "__STATIC_CONTENT_MANIFEST" {
   const manifest: string;
   export default manifest;
 }
 
-interface Env {
+export interface Env {
   R2: R2Bucket;
   DB: D1Database;
-}
-
-interface ImportMetaEnv {
-  MODE: string;
   SESSION_SECRET: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
