@@ -203,7 +203,8 @@ async function getTagsByPostId(postId: number, serverContext: AppLoadContext): P
     return tagNames;
 }
 
-export const PostShowCardSchema = z.optional(z.object({
+export type PostShowCardSchemaType = z.infer<typeof PostShowCardSchema>
+const PostShowCardSchema = z.optional(z.object({
     postId: z.number(),
     postTitle: z.string(),
     postContentMD: z.string(),
@@ -212,7 +213,7 @@ export const PostShowCardSchema = z.optional(z.object({
     postOGImageURL: z.string(),
     isPublic: z.number(),
     tagsNames: z.array(tagSchema),
-}));
+}))
 
 async function getRecentPosts(serverContext: AppLoadContext): Promise<z.infer<typeof PostShowCardSchema>[]> {
     const db = getDBClient(serverContext);

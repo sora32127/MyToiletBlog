@@ -1,15 +1,13 @@
-import { PostShowCardSchema } from "~/modules/db.server";
-import { z } from "zod";
+import type { PostShowCardSchemaType } from "~/modules/db.server";
 import { H3 } from "./Headings";
 import { NavLink } from "@remix-run/react";
 import TagShowCard from "./TagShowCard";
 import { FaCalendarAlt, FaChevronRight } from "react-icons/fa";
 
-export function PostEditCard({ post, handlePostSelect }: { post: z.infer<typeof PostShowCardSchema>, handlePostSelect: (postId: number) => void }) {
+export function PostEditCard({ post, handlePostSelect }: { post: PostShowCardSchemaType, handlePostSelect: (postId: number) => void }) {
     if (!post) {
         return null;
     }
-    
     const postDate = new Date(post.postUnixTimeGMT * 1000);
     const postEditUrl = `/back/edit?postId=${post.postId}`;
 
