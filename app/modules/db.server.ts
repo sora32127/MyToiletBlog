@@ -168,10 +168,12 @@ async function getPostByPostId(postId: number, serverContext: AppLoadContext, is
     }
 }
 
-export const tagSchema = z.object({
+const tagSchema = z.object({
     tagName: z.string(),
     tagId: z.number(),
 });
+
+export type TagSchemaType = z.infer<typeof tagSchema>
 
 async function getTagsByPostId(postId: number, serverContext: AppLoadContext): Promise<z.infer<typeof tagSchema>[]> {
     const db = getDBClient(serverContext);
