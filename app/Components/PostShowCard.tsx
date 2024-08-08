@@ -14,7 +14,7 @@ export function PostShowCard({ post }: { post: z.infer<typeof PostShowCardSchema
     const postUrl = `/posts/${post.postId}`;
 
     return (
-        <div className="bg-base-200 rounded-lg p-6 transition-all duration-300 hover:shadow-xl my-4">
+        <div className="bg-base-200 rounded-lg p-4 transition-all duration-300 hover:shadow-xl my-4">
             <div className="flex flex-wrap gap-2 mb-3">
                 {post.tagsNames.map((tag) => (
                     <TagShowCard key={tag.tagId} tags={tag} />

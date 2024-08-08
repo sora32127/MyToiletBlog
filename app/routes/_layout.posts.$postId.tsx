@@ -1,4 +1,5 @@
-import { json, LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/cloudflare";
 import { useLoaderData } from "@remix-run/react";
 import { H1 } from "~/Components/Headings";
 import { getPostByPostId, getTagsByPostId } from "~/modules/db.server";
@@ -6,12 +7,19 @@ import TagShowCard from "~/Components/TagShowCard";
 import SummaryShowCard from "~/Components/SummaryShowCard";
 import ShareButtons from "~/Components/ShareButtons";
 import { renderMarkdown } from "~/modules/rendermarkdown.server";
+import DateTime from "~/Components/DateTime";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
     const postId = params.postId;
     const post = await getPostByPostId(Number(postId), context, false)
     if (!post) {
-        return;
+        return json({
+            message: "Post not found",
+            status: 404,
+            post: null,
+            tags: null,
+            postHTML: null
+        });
     }
     const tags = await getTagsByPostId(Number(postId), context);
     const postHTML = await renderMarkdown(post.postContentMD.toString())
@@ -27,19 +35,27 @@ export default function Post() {
     return (
         <div>
             <H1>{post.postTitle}</H1>
-
-            <div>
-                <SummaryShowCard postSummary={postSummary.toString()} />
+            <div className="bg-base-200 py-4 px-4 rounded-lg md:mx-8">
+                <div className="py-2">
+                    <DateTime unixtime={post.postUnixTimeGMT} />
+                </div>
+                <div className="py-2">
+                    <SummaryShowCard postSummary={postSummary.toString()} />
+                </div>
+                <div className="py-2 flex">
+                    {tags?.map((tag: {tagId: number, tagName: string}) => (
+                        <div key={tag.tagId} className="mx-1">
+                            <TagShowCard tags={tag} />
+                        </div>
+                    ))}
+                </div>
             </div>
             <div dangerouslySetInnerHTML={{ __html: postHTML }} className="markdownHTML" />
-            <div className="my-8 flex">
-                {tags && tags.map((tag: any) => (
-                    <div key={tag.tagId} className="mx-1">
-                        <TagShowCard tags={tag} />
-                    </div>
-                ))}
-            </div>
-            <ShareButtons currentURL={"https://contradictiononline.org/posts/" + post.postId} postTitle={post.postTitle} />
+
+            <ShareButtons
+                currentURL={`https://contradictiononline.org/posts/${post.postId}`} 
+                postTitle={post.postTitle} 
+            />
         </div>
     );
 }

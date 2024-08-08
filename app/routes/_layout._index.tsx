@@ -36,11 +36,9 @@ export default function Index() {
   
   return (
     <div>
-        <ul>
-          {recents.map((post) => (
-            <PostShowCard key={post.postId} post={post} />
-          ))}
-        </ul>
+      {recents.map((post) => (
+        <PostShowCard key={post.postId} post={post} />
+      ))}
     </div>
   );
 }
