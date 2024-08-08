@@ -57,12 +57,9 @@ export function TagInput({ tags, onTagsChange, tagCounts }: TagInputProps) {
         }
     }, [focusedSuggestionIndex, suggestedTags.length]);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        console.log(e.key);
-
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement | HTMLButtonElement>) => {
         if (e.key === 'ArrowDown' && suggestedTags.length > 0) {
             e.preventDefault();
-
             setFocusedSuggestionIndex((prev) => (prev + 1) % suggestedTags.length);
         } else if (e.key === 'ArrowUp' && suggestedTags.length > 0) {
             e.preventDefault();
@@ -73,6 +70,7 @@ export function TagInput({ tags, onTagsChange, tagCounts }: TagInputProps) {
         } else if (e.key === 'Escape') {
             setSuggestedTags([]);
             setFocusedSuggestionIndex(-1);
+            inputRef.current?.focus();
         }
     };
 
@@ -100,12 +98,7 @@ export function TagInput({ tags, onTagsChange, tagCounts }: TagInputProps) {
                                 index === focusedSuggestionIndex ? 'bg-base-300' : ''
                             }`}
                             onClick={() => handleTagSuggestionClick(suggestion)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    handleTagSuggestionClick(suggestion);
-                                }
-                            }}
+                            onKeyDown={handleKeyDown}
                         >
                             {suggestion}
                         </button>
